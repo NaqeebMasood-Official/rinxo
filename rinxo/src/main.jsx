@@ -4,8 +4,8 @@ import './index.css'
 import  { createBrowserRouter, RouterProvider } from "react-router-dom"
 import Home from './pages/Home.jsx'
 import Login from './pages/Login.jsx'
-import Register from './pages/Register.jsx' 
-import AdminDashboard from './features/admin/dashboard/AdminDashboard.jsx'
+import Register from './pages/Register.jsx'  
+import Dashboard from './features/component/dashboard/Dashboard.jsx'
 
 const mainRoute =  createBrowserRouter([
   {
@@ -22,7 +22,7 @@ const mainRoute =  createBrowserRouter([
   },
   {
     path:"/dashboard",
-    element:<AdminDashboard/>
+    element:<Dashboard/>
   }
  
 
