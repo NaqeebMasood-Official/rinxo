@@ -21,3 +21,10 @@ export const userMenu = [
   { id: "trades", label: "My Trades", icon: CreditCard },
   { id: "settings", label: "Settings", icon: Settings },
 ];
+
+
+export const userSubMenu = [
+  { id: "deposit", label: "Deposit", },
+  { id: "withdraw", label: "Withdraw", },
+  // { id: "transactions", label: "Transactions", }, 
+];

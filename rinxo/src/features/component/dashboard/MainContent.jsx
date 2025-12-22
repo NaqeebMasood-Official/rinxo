@@ -7,9 +7,12 @@ import ManageFunds from "../admin/ManageFunds";
 import UserSettings from "../user/UserSettings";
 import UserManageFunds from "../user/UserManageFunds";
 import VerifyIdentityModal from "../user/VerifyIdentityModal";
+import UserDeposit from "../user/payment/UserDeposit";
+import UserWithdraw from "../user/payment/UserWithdraw";
 
-export default function MainContent({ sidebarOpen, setSidebarOpen, menuItems, activeMenu, role }) {
+export default function MainContent({ sidebarOpen, setSidebarOpen, menuItems, activeMenu, role, activeSubMenu, setActiveSubMenu }) {
   const [modalOpen, setModalOpen] = useState(false);
+
   const [showWarning, setShowWarning] = useState(false); // warning popup
   const [users, setUsers] = useState([
     {
@@ -42,6 +45,15 @@ export default function MainContent({ sidebarOpen, setSidebarOpen, menuItems, ac
       return () => clearTimeout(timer);
     }
   }, [role]);
+
+  // ✅ Reset sub menu when main menu changes
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setActiveSubMenu("undefined");
+    }, 0);
+
+    return () => clearTimeout(timer);
+  }, [activeMenu]);
 
   const handleConfirmVerify = () => {
     setShowWarning(false); // hide warning
@@ -109,13 +121,19 @@ export default function MainContent({ sidebarOpen, setSidebarOpen, menuItems, ac
               {activeMenu === "dashboard" && <Dashboard />}
               {activeMenu === "users" && <UserProfile users={users} setUsers={setUsers} />}
               {activeMenu === "funds" && <ManageFunds users={users} />}
+             
             </>
           )}
           {role === "user" && (
             <>
               {activeMenu === "dashboard" && <UserDashboard />}
               {activeMenu === "settings" && <UserSettings />}
-              {activeMenu === "myFunds" && <UserManageFunds />}
+              {/* {activeMenu === "myFunds" && <UserManageFunds />} */}
+              {activeMenu === "myFunds" && {
+                deposit: <UserDeposit setActiveSubMenu={setActiveSubMenu}/>,
+                withdraw:<UserWithdraw setActiveSubMenu={setActiveSubMenu}/>, 
+                undefined: <UserManageFunds setActiveSubMenu={setActiveSubMenu}/>,
+              }[activeSubMenu]}
             </>
           )}
         </section>
