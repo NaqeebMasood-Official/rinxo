@@ -1,10 +1,16 @@
-import React, { useState, useEffect } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import React, { useState, useRef, useEffect } from "react";
+import { Eye, EyeOff, ArrowLeft } from "lucide-react";
 import LoginLogo from "../../src/assets/images/user/icons/prelogin_logo.png";
-import "../../src/assets/styles/Login.css";
 import TopSlideLoading from "../components/common/Loading/TopSlideLoading";
 
 export default function Register() {
+  /* ================= STATES ================= */
+  const [step, setStep] = useState(1);
+
+  // loaders
+  const [pageLoading, setPageLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
+
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -14,230 +20,278 @@ export default function Register() {
 
   const [countryCode, setCountryCode] = useState("+1");
   const [passwordVisible, setPasswordVisible] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState({});
+  const [code, setCode] = useState(["", "", "", ""]);
 
-  const togglePassword = () => setPasswordVisible(!passwordVisible);
+  const inputRefs = useRef([]);
 
-  const getValue = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
+  /* ================= PAGE LOADER ================= */
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 800);
+    const timer = setTimeout(() => setPageLoading(false), 800);
     return () => clearTimeout(timer);
   }, []);
 
+  /* ================= HANDLERS ================= */
+  const togglePassword = () => setPasswordVisible(!passwordVisible);
+
+  const getValue = (e) =>
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+
   /* ================= VALIDATION ================= */
   const validate = () => {
-    let tempErrors = {};
+    let temp = {};
 
     if (!formData.fullName.trim())
-      tempErrors.fullName = "Full name is required";
+      temp.fullName = "Full name is required";
 
     if (!formData.email)
-      tempErrors.email = "Email is required";
+      temp.email = "Email is required";
     else if (!/\S+@\S+\.\S+/.test(formData.email))
-      tempErrors.email = "Invalid email format";
+      temp.email = "Invalid email";
 
     if (!formData.phone)
-      tempErrors.phone = "Phone number is required";
+      temp.phone = "Phone number is required";
     else if (!/^\d{7,15}$/.test(formData.phone))
-      tempErrors.phone = "Invalid phone number";
+      temp.phone = "Invalid phone number";
 
     if (!formData.password)
-      tempErrors.password = "Password is required";
+      temp.password = "Password is required";
     else if (formData.password.length < 6)
-      tempErrors.password = "Password must be at least 6 characters";
+      temp.password = "Minimum 6 characters";
 
-    setErrors(tempErrors);
-    return Object.keys(tempErrors).length === 0;
+    setErrors(temp);
+    return Object.keys(temp).length === 0;
   };
 
-  /* ================= SUBMIT ================= */
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  /* ================= REGISTER ================= */
+  const handleSubmit = () => {
     if (!validate()) return;
 
-    setLoading(true);
-
+    setActionLoading(true);
     setTimeout(() => {
-      setLoading(false);
-
-      console.log({
-        fullName: formData.fullName,
-        email: formData.email,
-        phone: countryCode + formData.phone,
-        password: formData.password,
-      });
-    }, 2000);
+      setActionLoading(false);
+      setStep(2);
+    }, 1500);
   };
 
-    return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4 relative">
-        <TopSlideLoading show={loading} />
+  /* ================= OTP ================= */
+  const handleCodeChange = (i, val) => {
+    if (val && !/^\d$/.test(val)) return;
 
-        <div className="bg-white rounded-lg shadow-lg p-6 md:p-8 w-full max-w-5xl relative z-10">
-        {/* Logo */}
-        <div className="mx-auto text-center mb-4">
-            <img
-            src={LoginLogo}
-            className="w-auto max-w-[150px] mx-auto"
-            alt="Logo"
-            />
-        </div>
+    const newCode = [...code];
+    newCode[i] = val;
+    setCode(newCode);
 
-        <h2 className="text-center text-xl font-semibold mb-6">
-            Individual Account Registration
-        </h2>
+    if (val && i < 3) inputRefs.current[i + 1]?.focus();
+  };
 
-        <form
-            onSubmit={handleSubmit}
-            className="grid grid-cols-1 md:grid-cols-2 gap-4"
+  const handleKeyDown = (i, e) => {
+    if (e.key === "Backspace" && !code[i] && i > 0)
+      inputRefs.current[i - 1]?.focus();
+  };
+
+  const handlePaste = (e) => {
+    e.preventDefault();
+    const pasted = e.clipboardData.getData("text").slice(0, 4);
+    if (!/^\d+$/.test(pasted)) return;
+
+    const newCode = pasted.split("");
+    setCode(newCode);
+    inputRefs.current[newCode.length - 1]?.focus();
+  };
+
+  const handleVerifyCode = () => {
+    if (code.join("").length < 4) return alert("Enter complete code");
+
+    setActionLoading(true);
+    setTimeout(() => {
+      setActionLoading(false);
+      alert("Account verified successfully!");
+    }, 1200);
+  };
+
+  /* ================= UI ================= */
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 relative">
+      <TopSlideLoading show={pageLoading} />
+
+      <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8 w-full max-w-5xl relative z-10 overflow-hidden">
+        <img src={LoginLogo} alt="logo" className="w-48 mx-auto mb-6" />
+
+        {/* ================= STEP 1 ================= */}
+        <div
+          className={`transition-all duration-500 ${
+            step === 1
+              ? "opacity-100 translate-x-0"
+              : "opacity-0 -translate-x-16 absolute inset-0 pointer-events-none"
+          }`}
         >
+          <h2 className="text-center text-2xl font-bold mb-8">
+            Individual Account Registration
+          </h2>
+
+          <div className="grid md:grid-cols-2 gap-4">
             {/* Full Name */}
             <div>
-            <label className="block text-gray-700 mb-1 text-sm">
-                Full Name
-            </label>
-            <input
-                type="text"
+              <label className="text-sm font-medium">Full Name</label>
+              <input
                 name="fullName"
-                placeholder="Full Name *"
                 value={formData.fullName}
                 onChange={getValue}
-                className={`w-full border rounded-md p-3 text-sm focus:outline-none focus:ring-2 ${
-                errors.fullName
+                className={`w-full border rounded-md p-3 mt-1 text-sm focus:outline-none focus:ring-2 ${
+                  errors.fullName
                     ? "border-red-500 focus:ring-red-400"
                     : "border-gray-300 focus:ring-yellow-400"
                 }`}
-            />
-            {errors.fullName && (
-                <p className="text-red-500 text-xs mt-1">
-                {errors.fullName}
-                </p>
-            )}
+              />
+              {errors.fullName && (
+                <p className="text-xs text-red-500">{errors.fullName}</p>
+              )}
             </div>
 
             {/* Email */}
             <div>
-            <label className="block text-gray-700 mb-1 text-sm">Email</label>
-            <input
-                type="email"
+              <label className="text-sm font-medium">Email</label>
+              <input
                 name="email"
-                placeholder="Email *"
                 value={formData.email}
                 onChange={getValue}
-                className={`w-full border rounded-md p-3 text-sm focus:outline-none focus:ring-2 ${
-                errors.email
+                className={`w-full border rounded-md p-3 mt-1 text-sm focus:outline-none focus:ring-2 ${
+                  errors.email
                     ? "border-red-500 focus:ring-red-400"
                     : "border-gray-300 focus:ring-yellow-400"
                 }`}
-            />
-            {errors.email && (
-                <p className="text-red-500 text-xs mt-1">{errors.email}</p>
-            )}
+              />
+              {errors.email && (
+                <p className="text-xs text-red-500">{errors.email}</p>
+              )}
             </div>
 
             {/* Phone */}
             <div>
-            <label className="block text-gray-700 mb-1 text-sm">
-                Phone Number
-            </label>
-            <div className="flex gap-2">
+              <label className="text-sm font-medium">Phone</label>
+              <div className="flex gap-2 mt-1">
                 <select
-                value={countryCode}
-                onChange={(e) => setCountryCode(e.target.value)}
-                className="border rounded-md p-2 text-sm focus:outline-none focus:ring-2 border-gray-300 focus:ring-yellow-400"
+                  value={countryCode}
+                  onChange={(e) => setCountryCode(e.target.value)}
+                  className={`border rounded-md p-3 text-sm focus:outline-none focus:ring-2 ${
+                    errors.phone
+                      ? "border-red-500 focus:ring-red-400"
+                      : "border-gray-300 focus:ring-yellow-400"
+                  }`}
                 >
-                <option value="+1">+1 USA</option>
-                <option value="+44">+44 UK</option>
-                <option value="+92">+92 Pakistan</option>
+                  <option value="+1">+1</option>
+                  <option value="+44">+44</option>
+                  <option value="+92">+92</option>
                 </select>
 
                 <input
-                type="tel"
-                name="phone"
-                placeholder="Phone Number *"
-                value={formData.phone}
-                onChange={getValue}
-                className={`flex-1 border rounded-md p-3 text-sm focus:outline-none focus:ring-2 ${
+                  name="phone"
+                  value={formData.phone}
+                  onChange={getValue}
+                  className={`flex-1 border rounded-md p-3 text-sm focus:outline-none focus:ring-2 ${
                     errors.phone
-                    ? "border-red-500 focus:ring-red-400"
-                    : "border-gray-300 focus:ring-yellow-400"
-                }`}
+                      ? "border-red-500 focus:ring-red-400"
+                      : "border-gray-300 focus:ring-yellow-400"
+                  }`}
                 />
-            </div>
-            {errors.phone && (
-                <p className="text-red-500 text-xs mt-1">{errors.phone}</p>
-            )}
+              </div>
+              {errors.phone && (
+                <p className="text-xs text-red-500">{errors.phone}</p>
+              )}
             </div>
 
             {/* Password */}
             <div>
-            <label className="block text-gray-700 mb-1 text-sm">
-                Password
-            </label>
-            <div className="relative">
+              <label className="text-sm font-medium">Password</label>
+              <div className="relative mt-1">
                 <input
-                type={passwordVisible ? "text" : "password"}
-                name="password"
-                placeholder="Password *"
-                value={formData.password}
-                onChange={getValue}
-                className={`w-full border rounded-md p-3 pr-10 text-sm focus:outline-none focus:ring-2 ${
+                  type={passwordVisible ? "text" : "password"}
+                  name="password"
+                  value={formData.password}
+                  onChange={getValue}
+                  className={`w-full border rounded-md p-3 pr-10 text-sm focus:outline-none focus:ring-2 ${
                     errors.password
-                    ? "border-red-500 focus:ring-red-400"
-                    : "border-gray-300 focus:ring-yellow-400"
-                }`}
+                      ? "border-red-500 focus:ring-red-400"
+                      : "border-gray-300 focus:ring-yellow-400"
+                  }`}
                 />
                 <button
-                type="button"
-                onClick={togglePassword}
-                className="absolute right-4 top-4 text-gray-400"
+                  type="button"
+                  onClick={togglePassword}
+                  className="absolute right-4 top-3 text-gray-400"
                 >
-                {passwordVisible ? <EyeOff size={18} /> : <Eye size={18} />}
+                  {passwordVisible ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
-            </div>
-            {errors.password && (
-                <p className="text-red-500 text-xs mt-1">
-                {errors.password}
-                </p>
-            )}
+              </div>
+              {errors.password && (
+                <p className="text-xs text-red-500">{errors.password}</p>
+              )}
             </div>
 
-            {/* Submit Button – Full Width */} 
-            <div className="col-span-full flex justify-center mt-4">
-                <button
-                    type="submit"
-                    disabled={loading}
-                    className={`md:px-25 px-20 py-3 rounded-full font-semibold transition ${
-                    loading
-                        ? "bg-gray-400 cursor-not-allowed"
-                        : "bg-yellow-400 hover:bg-yellow-500 text-white"
-                    }`}
-                >
-                    {loading ? "Creating Account..." : "Register"}
-                </button>
+            {/* Button */}
+            <div className="col-span-full flex justify-center mt-6">
+              <button
+                onClick={handleSubmit}
+                disabled={actionLoading}
+                className="px-24 py-3 rounded-full bg-yellow-400 text-white font-semibold flex items-center gap-2 disabled:opacity-60"
+              >
+                {actionLoading && (
+                  <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                )}
+                {actionLoading ? "Creating..." : "Register"}
+              </button>
             </div>
-
-        </form>
-
-        <div className="text-center mt-6">
-            <p className="text-gray-500 text-sm">
-            Already have an account?
-            </p>
-            <a
-            href="/login"
-            className="text-yellow-400 font-semibold hover:underline text-sm"
-            >
-            Sign In
-            </a>
+          </div>
         </div>
+
+        {/* ================= STEP 2 ================= */}
+        <div
+          className={`transition-all duration-500 ${
+            step === 2
+              ? "opacity-100 translate-x-0"
+              : "opacity-0 translate-x-16 absolute inset-0 pointer-events-none"
+          }`}
+        >
+          <button
+            onClick={() => setStep(1)}
+            className="flex items-center gap-2 mb-6 text-gray-600"
+          >
+            <ArrowLeft /> Back
+          </button>
+
+          <h2 className="text-center text-2xl font-bold mb-2">
+            Verify Your Email
+          </h2>
+
+          <p className="text-center mb-8 text-gray-600">
+            Code sent to <b>{formData.email}</b>
+          </p>
+
+          <div className="flex justify-center gap-3 mb-8">
+            {code.map((d, i) => (
+              <input
+                key={i}
+                ref={(el) => (inputRefs.current[i] = el)}
+                value={d}
+                maxLength={1}
+                onChange={(e) => handleCodeChange(i, e.target.value)}
+                onKeyDown={(e) => handleKeyDown(i, e)}
+                onPaste={i === 0 ? handlePaste : undefined}
+                className="w-16 h-16 text-center text-2xl border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-400"
+              />
+            ))}
+          </div>
+
+          <button
+            onClick={handleVerifyCode}
+            disabled={actionLoading}
+            className="w-full py-3 rounded-full bg-yellow-400 text-white font-semibold"
+          >
+            {actionLoading ? "Verifying..." : "Verify Code"}
+          </button>
         </div>
+      </div>
     </div>
-    );
-
+  );
 }

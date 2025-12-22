@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { CircleDollarSign, HandCoins, Send, Landmark, FileText } from "lucide-react";
 import Button from "../../../components/common/Button/Button";
+  
 
-export default function UserManageFunds() {
+export default function UserManageFunds({setActiveSubMenu}) {
   const [balance, setBalance] = useState(2500.0);
   const [transactions, setTransactions] = useState([
     { id: 1, type: "Deposit", amount: 500, date: "2025-12-19" },
@@ -24,8 +25,9 @@ export default function UserManageFunds() {
 
         <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
           <Button
+            onClick={()=>setActiveSubMenu("deposit")}
             btnName="Deposit"
-            locationHref="/deposit"
+            
             extraCss="flex-1 sm:flex-none px-5 py-2 rounded-3xl flex items-center justify-center gap-2"
             bgColour="bg-yellow-400"
             textColour="text-white"
@@ -37,7 +39,7 @@ export default function UserManageFunds() {
 
           <Button
             btnName="Withdraw"
-            locationHref="/withdraw"
+             onClick={()=>setActiveSubMenu("withdraw")}
             extraCss="flex-1 sm:flex-none px-5 py-2 rounded-3xl flex items-center justify-center gap-2"
             bgColour="bg-red-500"
             textColour="text-white"

@@ -6,6 +6,7 @@ import Home from './pages/Home.jsx'
 import Login from './pages/Login.jsx'
 import Register from './pages/Register.jsx'  
 import Dashboard from './features/component/dashboard/Dashboard.jsx'
+// import UserDeposit from './features/component/user/payment/UserDeposit.jsx'
 
 const mainRoute =  createBrowserRouter([
   {
@@ -23,7 +24,11 @@ const mainRoute =  createBrowserRouter([
   {
     path:"/dashboard",
     element:<Dashboard/>
-  }
+  },
+  // {
+  //   path:"/deposit",
+  //   element:<UserDeposit/>
+  // }
  
 
   

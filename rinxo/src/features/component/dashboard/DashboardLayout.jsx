@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { adminMenu, userMenu } from "./dashboardMenus";
+import { adminMenu, userMenu, userSubMenu } from "./dashboardMenus";
 import RissoxLogo from "../../../assets/images/user/icons/prelogin_logo.png";
 import SideBar from "./SideBar";
 import MainContent from "./MainContent";
@@ -7,10 +7,14 @@ import TopSlideLoading from "../../../components/common/Loading/TopSlideLoading"
 const DashboardLayout = ({ role = "admin" }) => {
      const [loading, setLoading] = useState(true);
   const [activeMenu, setActiveMenu] = useState("dashboard");
+
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [activeSubMenu, setActiveSubMenu] = useState("undefined");
 
   const menuItems = role == "admin" ? adminMenu : userMenu;
+  const subMenuItems  = userSubMenu;
     console.log(role)
   useEffect(() => {
     const resize = () => {
@@ -39,7 +43,7 @@ useEffect(() => {
     clearTimeout(start);
     clearTimeout(stop);
   };
-}, [activeMenu]);
+}, [activeMenu, activeSubMenu]);
 
   return (
     <>
@@ -51,7 +55,7 @@ useEffect(() => {
       <SideBar sidebarOpen={sidebarOpen}  RissoxLogo={RissoxLogo} isMobile={isMobile} setSidebarOpen={setSidebarOpen} menuItems={menuItems} activeMenu={activeMenu} setActiveMenu={setActiveMenu} />
 
       {/* Main Content */}
-      <MainContent sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} menuItems={menuItems} activeMenu={activeMenu} role={role}    />
+      <MainContent sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} menuItems={menuItems} activeMenu={activeMenu} role={role}  subMenuItems={subMenuItems} activeSubMenu={activeSubMenu}  setActiveSubMenu={setActiveSubMenu}/>
     </div>
     </>
     
