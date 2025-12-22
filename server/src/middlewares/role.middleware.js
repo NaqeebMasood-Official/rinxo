@@ -2,3 +2,15 @@
 // In simple words, it restricts access to specific parts of the application based on user roles (e.g., admin, user).
 
 // When to use: Admin dashboard routes or any routes that require specific user roles for access.
+
+export const authorize = (...roles) => {
+  return (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied: insufficient permissions!",
+      });
+    }
+    next();
+  };
+};
