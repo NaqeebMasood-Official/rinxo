@@ -27,13 +27,13 @@ const transactionSchema = new mongoose.Schema(
 
 const nicSchema = new mongoose.Schema(
   {
-    frontPicture: {
+    frontImage: {
       type: String, // store as URL or path
-      default: "",
+      default: null,
     },
-    backPicture: {
+    backImage: {
       type: String, // store as URL or path
-      default: "",
+      default: null,
     },
   },
   { _id: false }
@@ -87,6 +87,11 @@ const userSchema = new mongoose.Schema(
     transactions: {
       type: [transactionSchema],
       default: [],
+    },
+    
+    isNicUploaded: {
+      type: Boolean,
+      default: false,
     },
 
     nic: {
