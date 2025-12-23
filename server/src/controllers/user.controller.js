@@ -1,4 +1,4 @@
-import User from "../models/User.model";
+import User from "../models/User.model.js";
 
 export const uploadNICImages = async (req, res) => {
   try {
@@ -23,7 +23,7 @@ export const uploadNICImages = async (req, res) => {
       });
     }
 
-    if (user.isNicUploaded) {
+    if (user.status === "active") {
       return res.status(400).json({
         success: false,
         message: "NIC already uploaded!",
@@ -34,13 +34,13 @@ export const uploadNICImages = async (req, res) => {
       frontImage,
       backImage,
     };
-    user.isNicUploaded = true;
+    user.status = "active";
     await user.save();
 
     return res.status(201).json({
       success: false,
       message: "NIC uploaded successfully!",
-      nicStatus: user.isNicUploaded,
+      nicStatus: user.status,
     });
   } catch (err) {
     return res.status(500).json({

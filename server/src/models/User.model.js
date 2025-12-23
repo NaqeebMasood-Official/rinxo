@@ -88,11 +88,6 @@ const userSchema = new mongoose.Schema(
       type: [transactionSchema],
       default: [],
     },
-    
-    isNicUploaded: {
-      type: Boolean,
-      default: false,
-    },
 
     nic: {
       type: nicSchema,

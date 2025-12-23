@@ -199,7 +199,7 @@ export const loginUser = async (req, res) => {
       user: {
         email: user.email,
         role: user.role,
-        nicStatus: user.isNicUploaded,
+        nicStatus: user.status,
       },
     });
   } catch (err) {
