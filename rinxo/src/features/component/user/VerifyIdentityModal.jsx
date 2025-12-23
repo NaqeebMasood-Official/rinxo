@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 import { X, UploadCloud } from "lucide-react";
 
-export default function VerifyIdentityModal({ isOpen, onClose }) {
+export default function VerifyIdentityModal({
+  // isOpen,
+  setModalOpen,
+}) {
   const [frontImage, setFrontImage] = useState(null);
   const [backImage, setBackImage] = useState(null);
-
-  if (!isOpen) return null;
 
   const handleFileChange = (e, type) => {
     const file = e.target.files[0];
@@ -25,7 +26,7 @@ export default function VerifyIdentityModal({ isOpen, onClose }) {
       return;
     }
     alert("Identity submitted successfully!");
-    onClose();
+    setModalOpen(false);
   };
 
   return (
@@ -35,7 +36,7 @@ export default function VerifyIdentityModal({ isOpen, onClose }) {
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-bold text-gray-800">Verify Identity</h2>
           <button
-            onClick={onClose}
+            onClick={() => setModalOpen(false)}
             className="p-1 hover:bg-gray-100 rounded-lg transition"
           >
             <X size={24} />
@@ -69,7 +70,9 @@ export default function VerifyIdentityModal({ isOpen, onClose }) {
               <input
                 type="file"
                 accept="image/*"
-                className="absolute inset-0 opacity-0 cursor-pointer"
+                className={`w-full h-16 ${
+                  frontImage && "h-52"
+                } absolute opacity-0 cursor-pointer`}
                 onChange={(e) => handleFileChange(e, "front")}
               />
             </div>
@@ -96,7 +99,9 @@ export default function VerifyIdentityModal({ isOpen, onClose }) {
               <input
                 type="file"
                 accept="image/*"
-                className="absolute inset-0 opacity-0 cursor-pointer"
+                className={`w-full h-16 ${
+                  backImage && "h-52"
+                } absolute opacity-0 cursor-pointer`}
                 onChange={(e) => handleFileChange(e, "back")}
               />
             </div>
@@ -111,7 +116,7 @@ export default function VerifyIdentityModal({ isOpen, onClose }) {
               Submit
             </button>
             <button
-              onClick={onClose}
+              onClick={() => setModalOpen(false)}
               className="w-full sm:w-auto bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold px-6 py-2 rounded-lg transition"
             >
               Cancel

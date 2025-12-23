@@ -3,14 +3,22 @@ import { Menu } from "lucide-react";
 import Dashboard from "../admin/Dashboard";
 import UserDashboard from "../user/Dashboard";
 import UserProfile from "../admin/UserProfile";
-import ManageFunds from "../admin/ManageFunds"; 
+import ManageFunds from "../admin/ManageFunds";
 import UserSettings from "../user/UserSettings";
 import UserManageFunds from "../user/UserManageFunds";
 import VerifyIdentityModal from "../user/VerifyIdentityModal";
 import UserDeposit from "../user/payment/UserDeposit";
 import UserWithdraw from "../user/payment/UserWithdraw";
 
-export default function MainContent({ sidebarOpen, setSidebarOpen, menuItems, activeMenu, role, activeSubMenu, setActiveSubMenu }) {
+export default function MainContent({
+  sidebarOpen,
+  setSidebarOpen,
+  menuItems,
+  activeMenu,
+  role,
+  activeSubMenu,
+  setActiveSubMenu,
+}) {
   const [modalOpen, setModalOpen] = useState(false);
 
   const [showWarning, setShowWarning] = useState(false); // warning popup
@@ -21,7 +29,7 @@ export default function MainContent({ sidebarOpen, setSidebarOpen, menuItems, ac
       email: "john@example.com",
       phone: "+12123213123",
       balance: 5000,
-      accountType:"Standard",
+      accountType: "Standard",
       status: "Active",
     },
     {
@@ -30,7 +38,7 @@ export default function MainContent({ sidebarOpen, setSidebarOpen, menuItems, ac
       email: "jane@example.com",
       phone: "+121232313123",
       balance: 3200,
-      accountType:"Vip",
+      accountType: "Vip",
       status: "Active",
     },
   ]);
@@ -57,7 +65,7 @@ export default function MainContent({ sidebarOpen, setSidebarOpen, menuItems, ac
 
   const handleConfirmVerify = () => {
     setShowWarning(false); // hide warning
-    setModalOpen(true);    // open modal
+    setModalOpen(true); // open modal
   };
 
   return (
@@ -70,7 +78,8 @@ export default function MainContent({ sidebarOpen, setSidebarOpen, menuItems, ac
               Verify Identity
             </h2>
             <p className="text-sm text-gray-600 mb-6 text-center">
-              Please verify your identity by uploading your CNIC front and back images.
+              Please verify your identity by uploading your CNIC front and back
+              images.
             </p>
             <div className="flex justify-center gap-4">
               <button
@@ -91,10 +100,11 @@ export default function MainContent({ sidebarOpen, setSidebarOpen, menuItems, ac
       )}
 
       {/* Verify Identity Modal */}
-      <VerifyIdentityModal
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-      />
+      {modalOpen && (
+        <VerifyIdentityModal
+          setModalOpen={setModalOpen}
+        />
+      )}
 
       {/* Main Content */}
       <main
@@ -105,7 +115,10 @@ export default function MainContent({ sidebarOpen, setSidebarOpen, menuItems, ac
         {/* Header */}
         <header className="bg-white shadow-sm p-4 flex items-center gap-4">
           {!sidebarOpen && (
-            <button className="cursor-pointer" onClick={() => setSidebarOpen(!sidebarOpen)}>
+            <button
+              className="cursor-pointer"
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+            >
               <Menu />
             </button>
           )}
@@ -119,9 +132,10 @@ export default function MainContent({ sidebarOpen, setSidebarOpen, menuItems, ac
           {role === "admin" && (
             <>
               {activeMenu === "dashboard" && <Dashboard />}
-              {activeMenu === "users" && <UserProfile users={users} setUsers={setUsers} />}
+              {activeMenu === "users" && (
+                <UserProfile users={users} setUsers={setUsers} />
+              )}
               {activeMenu === "funds" && <ManageFunds users={users} />}
-             
             </>
           )}
           {role === "user" && (
@@ -129,11 +143,16 @@ export default function MainContent({ sidebarOpen, setSidebarOpen, menuItems, ac
               {activeMenu === "dashboard" && <UserDashboard />}
               {activeMenu === "settings" && <UserSettings />}
               {/* {activeMenu === "myFunds" && <UserManageFunds />} */}
-              {activeMenu === "myFunds" && {
-                deposit: <UserDeposit setActiveSubMenu={setActiveSubMenu}/>,
-                withdraw:<UserWithdraw setActiveSubMenu={setActiveSubMenu}/>, 
-                undefined: <UserManageFunds setActiveSubMenu={setActiveSubMenu}/>,
-              }[activeSubMenu]}
+              {activeMenu === "myFunds" &&
+                {
+                  deposit: <UserDeposit setActiveSubMenu={setActiveSubMenu} />,
+                  withdraw: (
+                    <UserWithdraw setActiveSubMenu={setActiveSubMenu} />
+                  ),
+                  undefined: (
+                    <UserManageFunds setActiveSubMenu={setActiveSubMenu} />
+                  ),
+                }[activeSubMenu]}
             </>
           )}
         </section>
