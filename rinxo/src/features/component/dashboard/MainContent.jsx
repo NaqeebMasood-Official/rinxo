@@ -9,6 +9,7 @@ import UserManageFunds from "../user/UserManageFunds";
 import UserDeposit from "../user/payment/UserDeposit";
 import UserWithdraw from "../user/payment/UserWithdraw";
 import VerifyIdentity from "../../../components/verificationPages/VerifyIdentity";
+import { usersData } from "../../../utils/user.utils";
 
 export default function MainContent({
   sidebarOpen,
@@ -19,34 +20,21 @@ export default function MainContent({
   activeSubMenu,
   setActiveSubMenu,
 }) {
+  const role = userData.role;
 
-  const role = userData.role
-  console.log(userData)
   const [modalOpen, setModalOpen] = useState(false);
 
   const [showWarning, setShowWarning] = useState(false); // warning popup
 
-  const [users, setUsers] = useState([
-    {
-      id: 1,
-      name: "John Doe",
-      email: "john@example.com",
-      phone: "+12123213123",
-      balance: 5000,
-      accountType: "Standard",
-      status: "Active",
-    },
-    {
-      id: 2,
-      name: "Jane Smith",
-      email: "jane@example.com",
-      phone: "+121232313123",
-      balance: 3200,
-      accountType: "Vip",
-      status: "Active",
-    },
-  ]);
- 
+  const [users, setUsers] = useState([]);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      const data = await usersData();
+      setUsers(data.data);
+    };
+    fetchUsers();
+  }, []);
   // Show warning popup on page load
   useEffect(() => {
     // Only for user role

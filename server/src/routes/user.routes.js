@@ -13,8 +13,8 @@ const router = express.Router();
 router.post("/upload-nic", protect, uploadNIC, uploadNICImages);
 
 // ADMIN ROUTES
-router.get("/users", protect, showAllUsers);
-router.delete("/:idToDeleteUser", deleteUser);
-router.patch("/:idToActivateUser", activateUser);
+router.get("/admin/users", protect, showAllUsers);
+router.delete("/admin/users/:idToDeleteUser", deleteUser);
+router.patch("/admin/users/:idToActivateUser", activateUser);
 
 export default router;

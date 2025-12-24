@@ -101,13 +101,13 @@ export const deleteUser = async (req, res) => {
     if (!deleteUser) {
       return res.status(404).json({
         success: false,
-        message: `User with id: ${idToDeleteUser} not found!`,
+        message: `User id: not found!`,
       });
     }
 
     return res.status(200).json({
       success: true,
-      message: `User with id: ${idToDeleteUser} deleted successfully!`,
+      message: `User deleted successfully!`,
     });
   } catch (err) {
     return res.status(500).json({
@@ -119,23 +119,25 @@ export const deleteUser = async (req, res) => {
 
 export const activateUser = async (req, res) => {
   try {
-    const idToActivateUser = req.params.idToActivateUser;
+    const id = req.params.idToActivateUser;
     const status = req.body.status;
 
-    if (!idToActivateUser) {
+    console.log(id)
+    console.log(status)
+    if (!id) {
       return res.status(400).json({
         success: false,
         message:
-          "Send user's id to activate the user! User id not sent in params!",
+          "User id not sent",
       });
     }
 
-    const user = await User.findOne({ _id: idToActivateUser });
+    const user = await User.findOne({ _id: id });
 
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: `User with id: ${idToActivateUser} not found!`,
+        message: `User not found!`,
       });
     }
 
@@ -143,7 +145,7 @@ export const activateUser = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: `User with id: ${idToActivateUser} ${status} successfully!`,
+      message: `User updated successfully!`,
     });
   } catch (err) {
     return res.status(500).json({

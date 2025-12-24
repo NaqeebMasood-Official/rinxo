@@ -97,27 +97,4 @@ export const logout = async () => {
   }
 };
 
-/* =====================================================
-   ❌ OTP / PIN CODE LOGIC (NOT USED)
-   -----------------------------------------------------
-   Your backend verifies email via LINK, not OTP code.
-   Keeping commented for future reference.
-   ===================================================== */
-
-// export const verifyOtpCode = async (code) => {
-//   try {
-//     const response = await API.post("/auth/verify-otp", { code });
-//     return response.data;
-//   } catch (error) {
-//     throw error?.response?.data;
-//   }
-// };
-
-// export const resendOtpCode = async (email) => {
-//   try {
-//     const response = await API.post("/auth/resend-otp", { email });
-//     return response.data;
-//   } catch (error) {
-//     throw error?.response?.data;
-//   }
-// };
+ 
