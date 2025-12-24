@@ -1,4 +1,4 @@
-import { Payment, Transaction, UserBalance } from '../models/payment.models';
+import { Payment, Transaction, UserBalance } from '../models/payment.models.js';
 import axios from 'axios';
 
 // NOWPayments API configuration

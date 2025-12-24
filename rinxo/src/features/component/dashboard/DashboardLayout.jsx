@@ -4,18 +4,18 @@ import RissoxLogo from "../../../assets/images/user/icons/prelogin_logo.png";
 import SideBar from "./SideBar";
 import MainContent from "./MainContent";
 import TopSlideLoading from "../../../components/common/Loading/TopSlideLoading";
-const DashboardLayout = ({ role = "admin" }) => {
-     const [loading, setLoading] = useState(true);
+const DashboardLayout = ({ user }) => {
+  const userData = user;
+  const [loading, setLoading] = useState(true);
   const [activeMenu, setActiveMenu] = useState("dashboard");
-
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [activeSubMenu, setActiveSubMenu] = useState("undefined");
 
-  const menuItems = role == "admin" ? adminMenu : userMenu;
-  const subMenuItems  = userSubMenu;
-    console.log(role)
+  const menuItems = userData.role == "admin" ? adminMenu : userMenu;
+  const subMenuItems = userSubMenu;
+
   useEffect(() => {
     const resize = () => {
       const mobile = window.innerWidth < 768;
@@ -28,37 +28,51 @@ const DashboardLayout = ({ role = "admin" }) => {
   }, []);
 
   // Hide loading when page fully loads
-useEffect(() => {
-  // show loader asynchronously (avoids cascading render warning)
-  const start = setTimeout(() => {
-    setLoading(true);
-  }, 0);
+  useEffect(() => {
+    // show loader asynchronously (avoids cascading render warning)
+    const start = setTimeout(() => {
+      setLoading(true);
+    }, 0);
 
-  // hide loader after delay
-  const stop = setTimeout(() => {
-    setLoading(false);
-  }, 800);
+    // hide loader after delay
+    const stop = setTimeout(() => {
+      setLoading(false);
+    }, 800);
 
-  return () => {
-    clearTimeout(start);
-    clearTimeout(stop);
-  };
-}, [activeMenu, activeSubMenu]);
+    return () => {
+      clearTimeout(start);
+      clearTimeout(stop);
+    };
+  }, [activeMenu, activeSubMenu]);
 
   return (
     <>
-     <TopSlideLoading show={loading} />
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
-      
+      <TopSlideLoading show={loading} />
+      <div className="flex h-screen bg-gray-50 overflow-hidden">
+        {/* Sidebar */}
+        <SideBar
+          sidebarOpen={sidebarOpen}
+          RissoxLogo={RissoxLogo}
+          isMobile={isMobile}
+          setSidebarOpen={setSidebarOpen}
+          menuItems={menuItems}
+          activeMenu={activeMenu}
+          setActiveMenu={setActiveMenu}
+        />
 
-      {/* Sidebar */}
-      <SideBar sidebarOpen={sidebarOpen}  RissoxLogo={RissoxLogo} isMobile={isMobile} setSidebarOpen={setSidebarOpen} menuItems={menuItems} activeMenu={activeMenu} setActiveMenu={setActiveMenu} />
-
-      {/* Main Content */}
-      <MainContent sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} menuItems={menuItems} activeMenu={activeMenu} role={role}  subMenuItems={subMenuItems} activeSubMenu={activeSubMenu}  setActiveSubMenu={setActiveSubMenu}/>
-    </div>
+        {/* Main Content */}
+        <MainContent
+          sidebarOpen={sidebarOpen}
+          setSidebarOpen={setSidebarOpen}
+          menuItems={menuItems}
+          activeMenu={activeMenu}
+          userData={userData}
+          subMenuItems={subMenuItems}
+          activeSubMenu={activeSubMenu}
+          setActiveSubMenu={setActiveSubMenu}
+        />
+      </div>
     </>
-    
   );
 };
 

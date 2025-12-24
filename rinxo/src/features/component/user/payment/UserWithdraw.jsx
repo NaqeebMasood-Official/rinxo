@@ -35,7 +35,7 @@ export default function UserWithdraw({ setActiveSubMenu }) {
     network: "BTC"
   });
 
-  const API_URL = "http://localhost:3000/api/payments";
+  const API_URL = "http://localhost:8000/api/payments";
 
   useEffect(() => {
     fetchBalance();

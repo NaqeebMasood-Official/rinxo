@@ -21,7 +21,7 @@ export default function UserDeposit({setActiveSubMenu}) {
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
 
-  const API_URL = "http://localhost:3000/api/payments";
+  const API_URL = "http://localhost:8000/api/payment/payments";
 
   // Fetch available cryptocurrencies
   useEffect(() => {

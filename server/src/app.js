@@ -7,7 +7,8 @@ import { logger } from "./middlewares/logger.middleware.js";
 
 import authRoutes from "./routes/auth.routes.js";
 import dashboardRoutes from "./routes/dashboard.routes.js";
-import userRoutes from "./routes/user.routes.js";
+import userRoutes from "./routes/user.routes.js"; 
+import paymentRoute from "./routes/nowpayment.routes.js";
 
 const app = express();
 
@@ -27,5 +28,7 @@ app.use("/", authRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/user", userRoutes);
+
+app.use("/api/payment", paymentRoute);
 
 export default app;

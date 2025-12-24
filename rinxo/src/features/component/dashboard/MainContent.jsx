@@ -6,22 +6,26 @@ import UserProfile from "../admin/UserProfile";
 import ManageFunds from "../admin/ManageFunds";
 import UserSettings from "../user/UserSettings";
 import UserManageFunds from "../user/UserManageFunds";
-import VerifyIdentityModal from "../user/VerifyIdentityModal";
 import UserDeposit from "../user/payment/UserDeposit";
 import UserWithdraw from "../user/payment/UserWithdraw";
+import VerifyIdentity from "../../../components/verificationPages/VerifyIdentity";
 
 export default function MainContent({
   sidebarOpen,
   setSidebarOpen,
   menuItems,
   activeMenu,
-  role,
+  userData,
   activeSubMenu,
   setActiveSubMenu,
 }) {
+
+  const role = userData.role
+  console.log(userData)
   const [modalOpen, setModalOpen] = useState(false);
 
   const [showWarning, setShowWarning] = useState(false); // warning popup
+
   const [users, setUsers] = useState([
     {
       id: 1,
@@ -42,7 +46,7 @@ export default function MainContent({
       status: "Active",
     },
   ]);
-
+ 
   // Show warning popup on page load
   useEffect(() => {
     // Only for user role
@@ -63,48 +67,14 @@ export default function MainContent({
     return () => clearTimeout(timer);
   }, [activeMenu]);
 
-  const handleConfirmVerify = () => {
-    setShowWarning(false); // hide warning
-    setModalOpen(true); // open modal
-  };
-
   return (
     <>
-      {/* Warning Popup */}
-      {showWarning && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white rounded-xl shadow-lg w-full max-w-sm p-6">
-            <h2 className="text-lg font-bold text-gray-800 mb-4 text-center">
-              Verify Identity
-            </h2>
-            <p className="text-sm text-gray-600 mb-6 text-center">
-              Please verify your identity by uploading your CNIC front and back
-              images.
-            </p>
-            <div className="flex justify-center gap-4">
-              <button
-                onClick={handleConfirmVerify}
-                className="bg-yellow-400 hover:bg-yellow-500 text-white font-semibold px-4 py-2 rounded-lg transition"
-              >
-                Confirm
-              </button>
-              <button
-                onClick={() => setShowWarning(false)}
-                className="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold px-4 py-2 rounded-lg transition"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Verify Identity Modal */}
-      {modalOpen && (
-        <VerifyIdentityModal
-          setModalOpen={setModalOpen}
-        />
-      )}
+      <VerifyIdentity
+        showWarning={showWarning}
+        setShowWarning={setShowWarning}
+        setModalOpen={setModalOpen}
+        modalOpen={modalOpen}
+      />
 
       {/* Main Content */}
       <main

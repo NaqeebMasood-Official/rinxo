@@ -1,6 +1,6 @@
-import React from 'react'
-import DashboardLayout from './DashboardLayout'
+import React from "react";
+import DashboardLayout from "./DashboardLayout";
 
-export default function Dashboard({ role }) {
-  return <DashboardLayout role={role} />;
+export default function Dashboard({ user }) {
+  return <DashboardLayout user={user} />;
 }
