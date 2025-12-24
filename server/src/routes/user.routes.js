@@ -4,17 +4,22 @@ import {
   activateUser,
   deleteUser,
   showAllUsers,
+  showLoggedInAdminData,
+  showloggedInAdminData,
   uploadNICImages,
 } from "../controllers/user.controller.js";
 import { protect } from "../middlewares/auth.middlerware.js";
 
 const router = express.Router();
 
+// USER ROUTES
 router.post("/upload-nic", protect, uploadNIC, uploadNICImages);
 
 // ADMIN ROUTES
-router.get("/users", protect, showAllUsers);
-router.delete("/:idToDeleteUser", deleteUser);
-router.patch("/:idToActivateUser", activateUser);
+router.get("/admin/users", protect, showAllUsers);
+router.delete("/admin/users/:idToDeleteUser", protect, deleteUser);
+router.patch("/admin/users/:idToActivateUser", protect, activateUser);
+router.get("/admin", protect, showloggedInAdminData);
+router.patch("/admin/:id", protect, showLoggedInAdminData);
 
 export default router;

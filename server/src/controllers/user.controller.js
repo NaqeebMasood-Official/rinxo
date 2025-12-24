@@ -152,3 +152,80 @@ export const activateUser = async (req, res) => {
     });
   }
 };
+
+export const showloggedInAdminData = async (req, res) => {
+  try {
+    const id = req.user._id;
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: "User ID is required!",
+      });
+    }
+
+    const user = await User.findById({ _id: id });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: `User with id: ${id} is not found!`,
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "User found successfully!",
+      user: {
+        fullName: user.fullName,
+        email: user.email,
+        phoneNumber: user.phoneNumber,
+        role: user.role,
+      },
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: `Server Error: ${err.message}`,
+    });
+  }
+};
+
+export const updateLoggedInAdminData = async (req, res) => {
+  try {
+    const id = req.params.id;
+    // const id = req.user._id;
+    const { fullName, phoneNumber } = req.body;
+
+    if (!id || !fullName || !phoneNumber) {
+      return res.status(400).json({
+        success: false,
+        message: "User ID is required!",
+      });
+    }
+
+    const updateData = {
+      fullName,
+      phoneNumber,
+    };
+
+    const updatedUser = await User.findOneAndUpdate(
+      { _id: id },
+      { $set: updateData },
+      { new: true, runValidators: true }
+    )
+      .select("fullName")
+      .select("phoneNumber");
+
+    return res.status(200).json({
+      success: true,
+      message: "Profile updated successfully!",
+      user: updatedUser,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: `Server Error: ${err.message}`,
+    });
+  }
+};
