@@ -1,3 +1,4 @@
+import bcrypt from "bcryptjs";
 import User from "../models/User.model.js";
 
 export const uploadNICImages = async (req, res) => {
@@ -122,13 +123,12 @@ export const activateUser = async (req, res) => {
     const id = req.params.idToActivateUser;
     const status = req.body.status;
 
-    console.log(id)
-    console.log(status)
+    console.log(id);
+    console.log(status);
     if (!id) {
       return res.status(400).json({
         success: false,
-        message:
-          "User id not sent",
+        message: "User id not sent",
       });
     }
 
@@ -197,18 +197,21 @@ export const updateLoggedInAdminData = async (req, res) => {
   try {
     const id = req.params.id;
     // const id = req.user._id;
-    const { fullName, phoneNumber } = req.body;
+    const { fullName, phoneNumber, changedPassword } = req.body;
 
-    if (!id || !fullName || !phoneNumber) {
+    if (!id || !fullName || !phoneNumber || !changedPassword) {
       return res.status(400).json({
         success: false,
         message: "User ID is required!",
       });
     }
 
+    const hashedPassword = await bcrypt.hash(changedPassword, 10);
+
     const updateData = {
       fullName,
       phoneNumber,
+      password: hashedPassword,
     };
 
     const updatedUser = await User.findOneAndUpdate(
