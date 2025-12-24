@@ -4,7 +4,6 @@ import {
   activateUser,
   deleteUser,
   showAllUsers,
-  showLoggedInAdminData,
   showloggedInAdminData,
   updateLoggedInAdminData,
   uploadNICImages,
