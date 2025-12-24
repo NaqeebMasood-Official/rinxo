@@ -23,10 +23,10 @@ export const uploadNICImages = async (req, res) => {
       });
     }
 
-    if (user.status === "active") {
+    if (user.status === "active" || user.status === "pending") {
       return res.status(400).json({
         success: false,
-        message: "NIC already uploaded!",
+        message: `NIC already uploaded! Status: ${user.status}`,
       });
     }
 
@@ -34,7 +34,7 @@ export const uploadNICImages = async (req, res) => {
       frontImage,
       backImage,
     };
-    user.status = "active";
+    user.status = "pending";
     await user.save();
 
     return res.status(201).json({
@@ -45,7 +45,110 @@ export const uploadNICImages = async (req, res) => {
   } catch (err) {
     return res.status(500).json({
       success: false,
-      message: "NIC upload failed!",
+      message: `Sever Error: ${err.message}`,
+    });
+  }
+};
+
+export const showAllUsers = async (req, res) => {
+  try {
+    const userData = req.user;
+
+    if (!userData) {
+      return res.status(400).json({
+        success: false,
+        message: "User data not sent!",
+      });
+    }
+
+    const user = await User.findOne({ email: userData.email });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: `User with email: ${userData.email} does not exists!`,
+      });
+    }
+
+    const users = await User.find({ role: "user" });
+
+    if (!users) {
+      return res.status(404).json({
+        success: false,
+        message: "Users do not exists!",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Users recieved successfully!",
+      data: users,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: `Server Error: ${err.message}`,
+    });
+  }
+};
+
+export const deleteUser = async (req, res) => {
+  try {
+    const idToDeleteUser = req.params.idToDeleteUser;
+
+    const deleteUser = await User.deleteOne({ _id: idToDeleteUser });
+
+    if (!deleteUser) {
+      return res.status(404).json({
+        success: false,
+        message: `User with id: ${idToDeleteUser} not found!`,
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: `User with id: ${idToDeleteUser} deleted successfully!`,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: `Server Error: ${err.message}`,
+    });
+  }
+};
+
+export const activateUser = async (req, res) => {
+  try {
+    const idToActivateUser = req.params.idToActivateUser;
+    const status = req.body.status;
+
+    if (!idToActivateUser) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Send user's id to activate the user! User id not sent in params!",
+      });
+    }
+
+    const user = await User.findOne({ _id: idToActivateUser });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: `User with id: ${idToActivateUser} not found!`,
+      });
+    }
+
+    await User.updateOne({ _id: user._id }, { $set: { status: status } });
+
+    return res.status(200).json({
+      success: true,
+      message: `User with id: ${idToActivateUser} ${status} successfully!`,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: `Server Error: ${err.message}`,
     });
   }
 };

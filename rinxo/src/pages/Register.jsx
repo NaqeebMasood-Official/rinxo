@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import LoginLogo from "../../src/assets/images/user/icons/prelogin_logo.png";
 import TopSlideLoading from "../components/common/Loading/TopSlideLoading";
-import { registerUser } from "../utils/auth.utils";
+import { registerUser, resendEmailVerificationAPI } from "../utils/auth.utils";
 import { toast } from "react-toastify";
 
 export default function Register() {
@@ -20,6 +20,7 @@ export default function Register() {
   const [countryCode, setCountryCode] = useState("+1");
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [errors, setErrors] = useState({});
+  const [token, setToken] = useState("");
 
   /* ================= PAGE LOADER ================= */
   useEffect(() => {
@@ -81,18 +82,32 @@ export default function Register() {
     try {
       const phoneNumber = normalizePhoneNumber(countryCode, formData.phone);
 
-      await registerUser({
+      const result = await registerUser({
         fullName: formData.fullName,
         email: formData.email,
         password: formData.password,
         phoneNumber, // ✅ CLEAN & CORRECT
       });
+      setToken(result.token);
       toast.success("Registered successfully! Please verify your email.");
-      
     } catch (err) {
-      toast.error(err.message || "Registration failed"); 
+      toast.error(err.message || "Registration failed");
     } finally {
       setActionLoading(false);
+    }
+  };
+
+  const resendEmailVerification = async () => {
+    try {
+      const response = await resendEmailVerificationAPI(token);
+      // if (!response.ok) {
+      //   throw new Error(`HTTP Error! Status: ${response.status}`);
+      // }
+      const result = response;
+      console.log("result: ", result);
+    } catch (err) {
+      console.error("Error resending verification email", err.message);
+      toast.error("Failed to resend email verification!");
     }
   };
 
@@ -230,6 +245,19 @@ export default function Register() {
                 <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
               )}
               {actionLoading ? "Creating..." : "Register"}
+            </button>
+          </div>
+          <div className="col-span-full flex justify-center mt-6">
+            <button
+              onClick={resendEmailVerification}
+              // disabled={actionLoading}
+              className="px-24 py-3 rounded-full bg-yellow-400 text-white font-semibold flex items-center gap-2 disabled:opacity-60"
+            >
+              {/* {actionLoading && (
+                <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              )} */}
+              {/* {actionLoading ? "Sending..." : "Resend Verification"} */}
+              Resend Verification
             </button>
           </div>
         </div>

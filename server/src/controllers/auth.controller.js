@@ -75,7 +75,7 @@ export const registerUser = async (req, res) => {
     });
 
     const token = generateEmailToken(user._id);
-    const verifyLink = `${process.env.CLIENT_URL}/verify-email/${token}`;  
+    const verifyLink = `${process.env.CLIENT_URL}/verify-email/${token}`;
 
     await sendEmail({
       to: email,
@@ -91,6 +91,7 @@ export const registerUser = async (req, res) => {
     return res.status(201).json({
       success: true,
       message: "User registered successfully! Verify Your E-Mail",
+      token,
     });
   } catch (err) {
     return res.status(500).json({
@@ -101,81 +102,76 @@ export const registerUser = async (req, res) => {
   }
 };
 
-// export const loginUser = async (req, res) => {
-//   try {
-//     const email = req.body.email;
-//     const password = req.body.password;
+export const resendEmailVerification = async (req, res) => {
+  try {
+    const token = req.params.token;
 
-//     let user = await User.findOne({ email });
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        message: "Send token in request body!",
+      });
+    }
 
-//     if (!user) {
-//       return res.status(404).json({
-//         success: false,
-//         message: "User not found",
-//       });
-//     }
+    const verifyLink = `${process.env.CLIENT_URL}/verify-email/${token}`;
 
-//     if (!user.isEmailVerified) {
-//       return res.status(401).json({
-//         success: false,
-//         message: "Email not verified. Please verify your email to login.",
-//       });
-//     }
+    const secretKey = process.env.JWT_SECRET;
+    const userData = jwt.verify(token, secretKey);
 
-//     const isMatch = await bcrypt.compare(password, user.password);
+    const user = await User.findById(userData.userId);
+    console.log("userData: ", userData);
 
-//     if (!isMatch) {
-//       return res.status(400).json({
-//         success: false,
-//         message: "Invalid password",
-//       });
-//     }
+    await sendEmail({
+      to: user.email,
+      subject: "Verify your email (Resend)",
+      html: `
+          <h2>Email verification</h2>
+          <p>Click the link below to verify your email:</p>
+          <a href="${verifyLink}">Verify Email</a>
+          <p>This link expires in 15 minutes.</p>
+          `,
+    });
 
-//     const token = setUser(user);
-//     const userRole = user.role;
-
-//     res.cookie("token", token, {
-//       httpOnly: true,
-//       secure: process.env.NODE_ENV === "production",
-//       sameSite: "strict",
-//       maxAge: 24 * 60 * 60 * 1000,
-//     });
-
-//     res.cookie("role", userRole, {
-//       httpOnly: true,
-//       secure: process.env.NODE_ENV === "production",
-//       sameSite: "strict",
-//       maxAge: 24 * 60 * 60 * 1000,
-//     });
-
-//     return res.status(200).json({
-//       success: true,
-//       message: "Login successful",
-//       user: {
-//         email: user.email,
-//         role: user.role,
-//       },
-//     });
-//   } catch (err) {
-//     return res.status(500).json({ message: "Server error" });
-//   }
-// };
-
+    return res.status(200).json({
+      success: true,
+      message: "Email verification resent!",
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: `Server Error: ${err.message}`,
+    });
+  }
+};
 
 export const loginUser = async (req, res) => {
   try {
     const { email, phoneNumber, password } = req.body;
 
     if (!password || (!email && !phoneNumber)) {
-      return res.status(400).json({ success: false, message: "Email or phone and password are required" });
+      return res.status(400).json({
+        success: false,
+        message: "Email or phone and password are required",
+      });
     }
 
-    let user = email ? await User.findOne({ email }) : await User.findOne({ phoneNumber });
-    if (!user) return res.status(404).json({ success: false, message: "User not found" });
-    if (!user.isEmailVerified) return res.status(401).json({ success: false, message: "Email not verified" });
+    let user = email
+      ? await User.findOne({ email })
+      : await User.findOne({ phoneNumber });
+    if (!user)
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    if (!user.isEmailVerified)
+      return res
+        .status(401)
+        .json({ success: false, message: "Email not verified" });
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ success: false, message: "Invalid password" });
+    if (!isMatch)
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid password" });
 
     const token = setUser(user); // JWT generation
 
@@ -208,18 +204,19 @@ export const loginUser = async (req, res) => {
   }
 };
 
-export const logout = async (req,res) =>{
+export const logout = async (req, res) => {
   res.clearCookie("token", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-    });
-    res.clearCookie("role", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-    });
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+  });
+  res.clearCookie("role", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+  });
 
-    return res.status(200).json({ success: true, message: "Logged out successfully" });
-}
- 
+  return res
+    .status(200)
+    .json({ success: true, message: "Logged out successfully" });
+};

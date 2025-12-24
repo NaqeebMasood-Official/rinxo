@@ -4,6 +4,7 @@ import {
   loginUser,
   logout,
   registerUser,
+  resendEmailVerification,
   verifyEmail,
 } from "../controllers/auth.controller.js";
 import { validate } from "../middlewares/validate.middleware.js";
@@ -22,6 +23,7 @@ router.post(
 );
 
 router.get("/verify-email/:token", verifyEmail);
+router.get("/resend-email-verification/:token", resendEmailVerification);
 
 router.post(
   "/login",

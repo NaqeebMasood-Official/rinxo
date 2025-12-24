@@ -1,4 +1,4 @@
-import axios from "axios"; 
+import axios from "axios";
 
 /**
  * Axios instance
@@ -12,15 +12,14 @@ export const API = axios.create({
   withCredentials: true,
 });
 
- 
 /* =====================================================
    REGISTER USER
    Backend: POST /api/auth/register
    ===================================================== */
 export const registerUser = async (payload) => {
-  try { 
+  try {
     const response = await API.post("/auth/register", payload);
-    return response.data;
+    return response.data || response.json();
   } catch (error) {
     throw (
       error?.response?.data || {
@@ -39,6 +38,24 @@ export const verifyEmail = async (token) => {
   try {
     const response = await API.get(`/auth/verify-email/${token}`);
     return response.data;
+  } catch (error) {
+    throw (
+      error?.response?.data || {
+        success: false,
+        message: "Invalid or expired verification link",
+      }
+    );
+  }
+};
+
+/* =====================================================
+   RESEND VERIFICATION EMAIL (LINK BASED)
+   Backend: GET /api/auth/resend-email-verification/:token
+   ===================================================== */
+export const resendEmailVerificationAPI = async (token) => {
+  try {
+    const response = await API.get(`/auth/resend-email-verification/${token}`);
+    return response;
   } catch (error) {
     throw (
       error?.response?.data || {
@@ -79,7 +96,6 @@ export const logout = async () => {
     );
   }
 };
-
 
 /* =====================================================
    ❌ OTP / PIN CODE LOGIC (NOT USED)
