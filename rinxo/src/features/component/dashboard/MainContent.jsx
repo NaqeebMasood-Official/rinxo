@@ -89,7 +89,7 @@ export default function MainContent({
         <section className="flex-1 overflow-auto">
           {role === "admin" && (
             <>
-              {activeMenu === "dashboard" && <Dashboard />}
+              {activeMenu === "dashboard" && <Dashboard  userData={users}/>}
               {activeMenu === "users" && (
                 <UserProfile users={users} setUsers={setUsers} />
               )}
