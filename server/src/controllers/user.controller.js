@@ -281,16 +281,16 @@ export const updateAdminProfile = async (req, res) => {
     if (!id) {
       return res.status(400).json({
         success: false,
-        message: "Admin ID is required",
+        message: "  ID is required",
       });
     }
 
-    const admin = await User.findOne({ _id: id, role: "admin" });
+    const admin = await User.findOne({ _id: id });
 
     if (!admin) {
       return res.status(404).json({
         success: false,
-        message: "Admin not found",
+        message: "Not found",
       });
     }
 
@@ -332,12 +332,12 @@ export const updateAdminPassword = async (req, res) => {
       });
     }
 
-    const admin = await User.findOne({ _id: id, role: "admin" });
+    const admin = await User.findOne({ _id: id });
 
     if (!admin) {
       return res.status(404).json({
         success: false,
-        message: "Admin not found",
+        message: "Not found",
       });
     }
 
