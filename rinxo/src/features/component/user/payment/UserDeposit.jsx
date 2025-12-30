@@ -1,17 +1,23 @@
 import React, { useState, useEffect } from "react";
-import { 
-  ArrowLeft, 
-  Wallet, 
-  AlertCircle, 
-  CheckCircle, 
+import {
+  ArrowLeft,
+  Wallet,
+  AlertCircle,
+  CheckCircle,
   Loader2,
   Copy,
-  ExternalLink 
+  ExternalLink,
 } from "lucide-react";
 import Button from "../../../../components/common/Button/Button";
-import axios from "axios";
 
-export default function UserDeposit({setActiveSubMenu}) {
+import {
+  fetchCurrencies,
+  getEstimate,
+  createPayment,
+  normalizeCurrency,
+} from "../../../../utils/payment.utils";
+
+export default function UserDeposit({ setActiveSubMenu, user }) {
   const [amount, setAmount] = useState("");
   const [selectedCrypto, setSelectedCrypto] = useState("btc");
   const [currencies, setCurrencies] = useState([]);
@@ -21,47 +27,58 @@ export default function UserDeposit({setActiveSubMenu}) {
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
 
-  const API_URL = "http://localhost:8000/api/payment/payments";
-
-  // Fetch available cryptocurrencies
+  /* ================= FETCH CURRENCIES ================= */
   useEffect(() => {
-    fetchCurrencies();
+    const loadCurrencies = async () => {
+      try {
+        const data = await fetchCurrencies();
+        const popularCryptos = ["btc", "eth", "usdt", "ltc", "bnb", "trx"];
+
+        const filtered = data.currencies.filter((c) =>
+          popularCryptos.includes(c.toLowerCase())
+        );
+
+        setCurrencies(filtered.length ? filtered : popularCryptos);
+      } catch (err) {
+        console.error("Error loading currencies:", err);
+        setCurrencies(["btc", "eth", "usdt", "ltc"]);
+      }
+    };
+
+    loadCurrencies();
   }, []);
 
-  // Get price estimation when amount or crypto changes
+  /* ================= PRICE ESTIMATION (DEBOUNCE) ================= */
   useEffect(() => {
-    if (amount && parseFloat(amount) > 0) {
-      getEstimate();
-    }
+    const timer = setTimeout(() => {
+      if (amount && parseFloat(amount) > 0) {
+        handleEstimate();
+      } else {
+        setEstimatedAmount(null);
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
   }, [amount, selectedCrypto]);
 
-  const fetchCurrencies = async () => {
+  const handleEstimate = async () => {
     try {
-      const response = await axios.get(`${API_URL}/currencies`);
-      const popularCryptos = ["btc", "eth", "usdt", "ltc", "bnb", "trx"];
-      const filtered = response.data.currencies.filter(c => 
-        popularCryptos.includes(c.toLowerCase())
-      );
-      setCurrencies(filtered);
-    } catch (err) {
-      console.error("Error fetching currencies:", err);
-      setCurrencies(["btc", "eth", "usdt", "ltc"]);
-    }
-  };
-
-  const getEstimate = async () => {
-    try {
-      const response = await axios.post(`${API_URL}/estimate`, {
+      const data = await getEstimate({
         amount: parseFloat(amount),
-        currency_from: "usd",
-        currency_to: selectedCrypto
+        currencyTo: normalizeCurrency(selectedCrypto),
       });
-      setEstimatedAmount(response.data.estimated_amount);
+
+      if (!data.estimated_amount) throw new Error("Estimate unavailable");
+
+      setEstimatedAmount(data.estimated_amount);
+      setError("");
     } catch (err) {
-      console.error("Error getting estimate:", err);
+      console.error("Estimate error:", err);
+      setEstimatedAmount(null);
     }
   };
 
+  /* ================= CREATE PAYMENT ================= */
   const handleCreatePayment = async () => {
     if (!amount || parseFloat(amount) < 10) {
       setError("Minimum deposit amount is $10");
@@ -72,18 +89,22 @@ export default function UserDeposit({setActiveSubMenu}) {
     setError("");
 
     try {
-      const response = await axios.post(`${API_URL}/create-payment`, {
+      const payload = {
         price_amount: parseFloat(amount),
         price_currency: "usd",
         pay_currency: selectedCrypto,
-        order_id: `DEP-${Date.now()}`,
         order_description: `Wallet deposit of $${amount}`,
-        ipn_callback_url: `${API_URL}/ipn-callback`,
+        ipn_callback_url: `${import.meta.env.VITE_API_URL || "http://localhost:8000/api"}/payment/ipn-callback`,
         success_url: window.location.origin + "/manage-funds?status=success",
-        cancel_url: window.location.origin + "/deposit?status=cancelled"
+        cancel_url: window.location.origin + "/deposit?status=cancelled",
+      };
+
+      const data = await createPayment({
+        payload,
+        userId: user._id,
       });
 
-      setPayment(response.data);
+      setPayment(data);
     } catch (err) {
       setError(err.response?.data?.error || "Failed to create payment");
     } finally {
@@ -91,6 +112,7 @@ export default function UserDeposit({setActiveSubMenu}) {
     }
   };
 
+  /* ================= HELPERS ================= */
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
     setCopied(true);
@@ -103,19 +125,20 @@ export default function UserDeposit({setActiveSubMenu}) {
     usdt: "₮",
     ltc: "Ł",
     bnb: "BNB",
-    trx: "TRX"
+    trx: "TRX",
   };
 
+  /* ================= PAYMENT SCREEN ================= */
   if (payment) {
     return (
       <div className="p-4 sm:p-6 max-w-2xl mx-auto">
         <Button
           btnName="Back"
-          onClick={()=>setActiveSubMenu("undefined")}
+          onClick={() => setActiveSubMenu("undefined")}
           extraCss="mb-4 px-4 py-2 rounded-lg flex items-center gap-2"
           bgColour="bg-gray-100"
           textColour="text-gray-700"
-          hoverBgColour="hover:bg-gray-200 transition"
+          hoverBgColour="hover:bg-gray-200"
         >
           <ArrowLeft size={18} />
         </Button>
@@ -129,7 +152,8 @@ export default function UserDeposit({setActiveSubMenu}) {
               Complete Your Deposit
             </h2>
             <p className="text-gray-600">
-              Send exactly <span className="font-bold text-yellow-600">
+              Send exactly{" "}
+              <span className="font-bold text-yellow-600">
                 {payment.pay_amount} {payment.pay_currency.toUpperCase()}
               </span>
             </p>
@@ -145,8 +169,13 @@ export default function UserDeposit({setActiveSubMenu}) {
               <button
                 onClick={() => copyToClipboard(payment.pay_address)}
                 className="p-2 hover:bg-gray-200 rounded transition"
+                title={copied ? "Copied!" : "Copy address"}
               >
-                {copied ? <CheckCircle size={20} className="text-green-600" /> : <Copy size={20} />}
+                {copied ? (
+                  <CheckCircle size={20} className="text-green-600" />
+                ) : (
+                  <Copy size={20} />
+                )}
               </button>
             </div>
           </div>
@@ -189,38 +218,49 @@ export default function UserDeposit({setActiveSubMenu}) {
           </div>
 
           {/* Action Button */}
-          <button
-            onClick={() => window.open(`https://nowpayments.io/payment/?iid=${payment.invoice_id}`, '_blank')}
-            className="w-full bg-yellow-400 hover:bg-yellow-500 text-white font-semibold py-3 rounded-lg transition flex items-center justify-center gap-2"
-          >
-            Open Payment Page <ExternalLink size={18} />
-          </button>
+          {payment.invoice_id && (
+            <button
+              onClick={() =>
+                window.open(
+                  `https://nowpayments.io/payment/?iid=${payment.invoice_id}`,
+                  "_blank"
+                )
+              }
+              className="w-full bg-yellow-400 hover:bg-yellow-500 text-white font-semibold py-3 rounded-lg transition flex items-center justify-center gap-2"
+            >
+              Open Payment Page <ExternalLink size={18} />
+            </button>
+          )}
         </div>
       </div>
     );
   }
 
+  /* ================= MAIN FORM ================= */
   return (
     <div className="p-4 sm:p-6 max-w-1xl mx-auto">
-      
-
       <div className="bg-white rounded-xl shadow-sm p-6 space-y-6">
         <Button
-            btnName="Back"
-            onClick={()=>setActiveSubMenu("undefined")}
-            extraCss="mb-4 px-4 py-2 rounded-lg flex items-center gap-2"
-            bgColour="bg-gray-100"
-            textColour="text-gray-700"
-            hoverBgColour="hover:bg-gray-200 transition"
-          >
-            <ArrowLeft size={18} />
+          btnName="Back"
+          onClick={() => setActiveSubMenu("undefined")}
+          extraCss="mb-4 px-4 py-2 rounded-lg flex items-center gap-2"
+          bgColour="bg-gray-100"
+          textColour="text-gray-700"
+          hoverBgColour="hover:bg-gray-200"
+        >
+          <ArrowLeft size={18} />
         </Button>
+
         <div className="text-center">
           <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <Wallet size={32} className="text-yellow-600" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Deposit Funds using Crypto</h2>
-          <p className="text-gray-600">Add money to your wallet using cryptocurrency</p>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">
+            Deposit Funds using Crypto
+          </h2>
+          <p className="text-gray-600">
+            Add money to your wallet using cryptocurrency
+          </p>
         </div>
 
         {error && (
@@ -278,7 +318,9 @@ export default function UserDeposit({setActiveSubMenu}) {
         {/* Estimated Amount */}
         {estimatedAmount && (
           <div className="bg-gray-50 rounded-lg p-4">
-            <p className="text-sm text-gray-600 mb-1">You will receive approximately:</p>
+            <p className="text-sm text-gray-600 mb-1">
+              You will pay approximately:
+            </p>
             <p className="text-2xl font-bold text-gray-800">
               {estimatedAmount} {selectedCrypto.toUpperCase()}
             </p>
@@ -323,7 +365,10 @@ export default function UserDeposit({setActiveSubMenu}) {
         {/* Info */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <div className="flex gap-3">
-            <AlertCircle size={20} className="text-blue-600 flex-shrink-0 mt-0.5" />
+            <AlertCircle
+              size={20}
+              className="text-blue-600 flex-shrink-0 mt-0.5"
+            />
             <div className="text-sm text-blue-800">
               <p className="font-semibold mb-1">How it works:</p>
               <ol className="list-decimal list-inside space-y-1">

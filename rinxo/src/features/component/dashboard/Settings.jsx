@@ -3,7 +3,7 @@ import { Edit, Save, X, Lock, Eye, EyeOff } from "lucide-react";
 import { adminUpdatePassword, adminUpdateProfile, specificData } from "../../../utils/user.utils";
 import { toast } from "react-toastify";
 
-export default function AdminSettings({ user }) {
+export default function Settings({ user }) {
   const [isEditing, setIsEditing] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [userData, setUserData] = useState(null);

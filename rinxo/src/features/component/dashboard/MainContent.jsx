@@ -3,15 +3,12 @@ import { Menu } from "lucide-react";
 import Dashboard from "../admin/Dashboard";
 import UserDashboard from "../user/Dashboard";
 import UserProfile from "../admin/UserProfile";
-import ManageFunds from "../admin/ManageFunds";
-import UserSettings from "../user/UserSettings";
+import ManageFunds from "../admin/ManageFunds"; 
 import UserManageFunds from "../user/UserManageFunds";
 import UserDeposit from "../user/payment/UserDeposit";
-import UserWithdraw from "../user/payment/UserWithdraw";
-// import VerifyIdentity from "../../../components/verificationPages/VerifyIdentity";
-import AdminSettings from "../admin/AdminSettings";
-// import ProtectedRoute from "../../../routes/ProtectedRoute";
+import UserWithdraw from "../user/payment/UserWithdraw"; 
 import VerificationRoute from "../../../routes/VerificationRoute";
+import Settings from "./Settings";
 
 export default function MainContent({
   sidebarOpen,
@@ -28,8 +25,7 @@ export default function MainContent({
   useEffect(() => {
     const timer = setTimeout(() => {
       setActiveSubMenu("undefined");
-    }, 0);
-
+    }, 0); 
     return () => clearTimeout(timer);
   }, [activeMenu]);
 
@@ -80,7 +76,7 @@ export default function MainContent({
               {activeMenu === "dashboard" && <Dashboard />}
               {activeMenu === "users" && <UserProfile />}
               {activeMenu === "funds" && <ManageFunds />}
-              {activeMenu === "settings" && <AdminSettings user={userData} />}
+              {activeMenu === "settings" && <Settings user={userData} />}
             </>
           )}
           {role === "user" && (
@@ -92,7 +88,7 @@ export default function MainContent({
                 {
                   deposit: (
                     <VerificationRoute setActiveSubMenu={setActiveSubMenu}>
-                      <UserDeposit setActiveSubMenu={setActiveSubMenu} />
+                      <UserDeposit setActiveSubMenu={setActiveSubMenu} user={userData}/>
                     </VerificationRoute>
                   ),
                   withdraw: (
@@ -104,7 +100,7 @@ export default function MainContent({
                     <UserDashboard setActiveSubMenu={setActiveSubMenu} />
                   ),
                 }[activeSubMenu]}
-              {activeMenu === "settings" && <UserSettings />}
+              {activeMenu === "settings" && <Settings user={userData} />}
 
               {activeMenu === "myFunds" &&
                 {

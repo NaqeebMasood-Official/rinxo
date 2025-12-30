@@ -34,18 +34,54 @@ export const getCurrencies = async (req, res) => {
   }
 };
 
-// ================= MIN AMOUNT =================
 export const getMinAmount = async (req, res) => {
   try {
     const { currency } = req.params;
+
     const response = await nowpaymentsRequest.get(
-      `/min-amount?currency_from=${currency}&currency_to=${currency}`
+      `/min-amount?currency_from=usd&currency_to=${currency}`
     );
+
     res.json(response.data);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
+
+
+// ================= MIN AMOUNT =================
+// export const getMinAmount = async (req, res) => {
+//   try {
+//     const { currency } = req.params;
+//     const response = await nowpaymentsRequest.get(
+//       `/min-amount?currency_from=${currency}&currency_to=${currency}`
+//     );
+//     res.json(response.data);
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//   }
+// };
+
+// ================= ESTIMATE =================
+// export const estimatePrice = async (req, res) => {
+//   try {
+//     const { amount, currency_from, currency_to } = req.body;
+
+//     if (!amount || !currency_from || !currency_to) {
+//       return res.status(400).json({ error: 'Missing required fields' });
+//     }
+
+//     const response = await nowpaymentsRequest.post('/estimate', {
+//       amount,
+//       currency_from,
+//       currency_to,
+//     });
+
+//     res.json(response.data);
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//   }
+// };
 
 // ================= ESTIMATE =================
 export const estimatePrice = async (req, res) => {
@@ -56,15 +92,23 @@ export const estimatePrice = async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
+    // NOWPayments uses POST /estimate for price estimation
     const response = await nowpaymentsRequest.post('/estimate', {
-      amount,
-      currency_from,
-      currency_to,
+      amount: parseFloat(amount),
+      currency_from: currency_from.toLowerCase(),
+      currency_to: currency_to.toUpperCase(),
     });
 
     res.json(response.data);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Estimate error:', err.response?.data || err.message);
+    
+    // More detailed error response
+    res.status(err.response?.status || 500).json({
+      error: 'Estimate failed',
+      message: err.response?.data?.message || err.message,
+      details: err.response?.data,
+    });
   }
 };
 
@@ -259,22 +303,42 @@ export const ipnCallback = async (req, res) => {
       payment_id: data.payment_id,
     });
 
+    // if (transaction && data.payment_status === 'finished') {
+    //   let userBalance = await UserBalance.findOne({ user_id: payment.user_id });
+
+    //   if (!userBalance) {
+    //     userBalance = new UserBalance({ user_id: payment.user_id, balance: 0 });
+    //   }
+
+    //   transaction.status = 'completed';
+    //   transaction.balance_before = userBalance.balance;
+
+    //   userBalance.balance += payment.price_amount;
+    //   transaction.balance_after = userBalance.balance;
+
+    //   await userBalance.save();
+    //   await transaction.save();
+    // }
+
     if (transaction && data.payment_status === 'finished') {
-      let userBalance = await UserBalance.findOne({ user_id: payment.user_id });
+  if (transaction.status !== 'completed') {
+    let userBalance = await UserBalance.findOne({ user_id: payment.user_id });
 
-      if (!userBalance) {
-        userBalance = new UserBalance({ user_id: payment.user_id, balance: 0 });
-      }
-
-      transaction.status = 'completed';
-      transaction.balance_before = userBalance.balance;
-
-      userBalance.balance += payment.price_amount;
-      transaction.balance_after = userBalance.balance;
-
-      await userBalance.save();
-      await transaction.save();
+    if (!userBalance) {
+      userBalance = new UserBalance({ user_id: payment.user_id, balance: 0 });
     }
+
+    transaction.status = 'completed';
+    transaction.balance_before = userBalance.balance;
+
+    userBalance.balance += payment.price_amount;
+    transaction.balance_after = userBalance.balance;
+
+    await userBalance.save();
+    await transaction.save();
+  }
+}
+
 
     res.sendStatus(200);
   } catch (err) {
