@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import VerifyIdentityModal from "./VerifyIdentityModal";
 
 export default function VerifyIdentity({ user, setActiveSubMenu }) {

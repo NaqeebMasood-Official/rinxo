@@ -24,7 +24,6 @@ const VerificationRoute = ({ children, setActiveSubMenu }) => {
     };
     checkAuth();
   }, []);
- 
 
   if (loading) return <div>Loading...</div>;
   if (!isAuth) return <Navigate to="/login" replace />;
@@ -33,6 +32,11 @@ const VerificationRoute = ({ children, setActiveSubMenu }) => {
   if (user.role === "user" && user.status === "inActive") {
     return <VerifyIdentity user={user} setActiveSubMenu={setActiveSubMenu} />;
   }
+
+  // Prevent pending status users to access deposit or withdraw
+  // if (user.role === "user" && user.status === "pending") {
+  //   return <VerifyIdentity user={user} setActiveSubMenu={setActiveSubMenu} />;
+  // }
 
   return children;
 };
