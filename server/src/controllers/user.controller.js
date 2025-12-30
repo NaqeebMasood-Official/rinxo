@@ -3,7 +3,7 @@ import User from "../models/User.model.js";
 
 export const uploadNICImages = async (req, res) => {
   try {
-    const userData = req.body.user;
+    const userData = req.user;
 
     if (!req.files?.frontImage || !req.files?.backImage) {
       return res.status(400).json({
@@ -12,19 +12,19 @@ export const uploadNICImages = async (req, res) => {
       });
     }
 
-    const frontImage = req.files.frontImage;
-    const backImage = req.files.backImage;
+    const frontImagePath = req.files.frontImage[0].path;
+    const backImagePath = req.files.backImage[0].path;
 
     const user = await User.findOne({ email: userData.email });
 
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: "User does not exists!",
+        message: "User does not exist!",
       });
     }
 
-    if (user.status === "active" || user.status === "pending") {
+    if (["active", "pending"].includes(user.status)) {
       return res.status(400).json({
         success: false,
         message: `NIC already uploaded! Status: ${user.status}`,
@@ -32,21 +32,22 @@ export const uploadNICImages = async (req, res) => {
     }
 
     user.nic = {
-      frontImage,
-      backImage,
+      frontImage: frontImagePath,
+      backImage: backImagePath,
     };
     user.status = "pending";
+
     await user.save();
 
     return res.status(201).json({
-      success: false,
+      success: true,
       message: "NIC uploaded successfully!",
       nicStatus: user.status,
     });
   } catch (err) {
     return res.status(500).json({
       success: false,
-      message: `Sever Error: ${err.message}`,
+      message: `Server Error: ${err.message}`,
     });
   }
 };
@@ -95,7 +96,7 @@ export const showAllUsers = async (req, res) => {
 
 export const showSingleUser = async (req, res) => {
   try {
-    const userId = req.params.userId; 
+    const userId = req.params.userId;
     if (!userId) {
       return res.status(401).json({
         success: false,
@@ -105,7 +106,7 @@ export const showSingleUser = async (req, res) => {
 
     // Ensure requester exists (admin check can be middleware)
     const user = await User.findOne({
-      _id: userId
+      _id: userId,
     });
 
     // const user = await User.findOne({
@@ -132,7 +133,6 @@ export const showSingleUser = async (req, res) => {
     });
   }
 };
-
 
 export const deleteUser = async (req, res) => {
   try {
@@ -275,9 +275,9 @@ export const showloggedInAdminData = async (req, res) => {
 
 export const updateAdminProfile = async (req, res) => {
   try {
-    const id  = req.params.id;
+    const id = req.params.id;
     const { fullName, phoneNumber } = req.body;
-  
+
     if (!id) {
       return res.status(400).json({
         success: false,
@@ -320,11 +320,10 @@ export const updateAdminProfile = async (req, res) => {
   }
 };
 
-
 export const updateAdminPassword = async (req, res) => {
   try {
     const id = req.params.id;
-    const { currentPassword, newPassword } = req.body; 
+    const { currentPassword, newPassword } = req.body;
     if (!currentPassword || !newPassword) {
       return res.status(400).json({
         success: false,
@@ -342,10 +341,7 @@ export const updateAdminPassword = async (req, res) => {
     }
 
     // Check current password
-    const isMatch = await bcrypt.compare(
-      currentPassword,
-      admin.password
-    );
+    const isMatch = await bcrypt.compare(currentPassword, admin.password);
 
     if (!isMatch) {
       return res.status(400).json({

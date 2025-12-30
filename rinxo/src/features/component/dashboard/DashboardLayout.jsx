@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { adminMenu, userMenu, userSubMenu } from "./dashboardMenus";
 import RissoxLogo from "../../../assets/images/user/icons/prelogin_logo.png";
 import SideBar from "./SideBar";

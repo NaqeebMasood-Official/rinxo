@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { Menu } from "lucide-react";
 import Dashboard from "../admin/Dashboard";
 import UserDashboard from "../user/Dashboard";
@@ -8,9 +8,9 @@ import UserSettings from "../user/UserSettings";
 import UserManageFunds from "../user/UserManageFunds";
 import UserDeposit from "../user/payment/UserDeposit";
 import UserWithdraw from "../user/payment/UserWithdraw";
-import VerifyIdentity from "../../../components/verificationPages/VerifyIdentity";
+// import VerifyIdentity from "../../../components/verificationPages/VerifyIdentity";
 import AdminSettings from "../admin/AdminSettings";
-import ProtectedRoute from "../../../routes/ProtectedRoute";
+// import ProtectedRoute from "../../../routes/ProtectedRoute";
 import VerificationRoute from "../../../routes/VerificationRoute";
 
 export default function MainContent({
@@ -57,6 +57,20 @@ export default function MainContent({
           <h1 className="text-xl font-bold capitalize">
             {menuItems.find((m) => m.id === activeMenu)?.label}
           </h1>
+          <p
+            className={`px-2 py-1 rounded-full text-xs font-semibold ${
+              // in your table & modal
+              userData.status === "active"
+                ? "bg-green-100 text-green-700"
+                : userData.status === "inActive"
+                ? "bg-gray-100 text-gray-700"
+                : userData.status === "pending"
+                ? "bg-yellow-100 text-yellow-700"
+                : "bg-red-100 text-red-700"
+            }`}
+          >
+            {userData.status}
+          </p>
         </header>
 
         {/* Page Content */}
@@ -85,7 +99,6 @@ export default function MainContent({
                     <VerificationRoute setActiveSubMenu={setActiveSubMenu}>
                       <UserWithdraw setActiveSubMenu={setActiveSubMenu} />
                     </VerificationRoute>
-                    
                   ),
                   undefined: (
                     <UserDashboard setActiveSubMenu={setActiveSubMenu} />
@@ -104,7 +117,6 @@ export default function MainContent({
                     <VerificationRoute setActiveSubMenu={setActiveSubMenu}>
                       <UserWithdraw setActiveSubMenu={setActiveSubMenu} />
                     </VerificationRoute>
-                    
                   ),
                   undefined: (
                     <UserManageFunds setActiveSubMenu={setActiveSubMenu} />
