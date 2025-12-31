@@ -8,14 +8,26 @@ import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
 import Dashboard from "./features/component/dashboard/Dashboard.jsx";
 import EmailVerified from "./components/verificationPages/EmailVerified.jsx";
-import { Bounce, ToastContainer } from "react-toastify"; 
+
 import ProtectedRoute from "./routes/ProtectedRoute.jsx";
+import PublicRoute from "./routes/PublicRoute.jsx";
+
+import { Bounce, ToastContainer } from "react-toastify";
 
 const mainRoute = createBrowserRouter([
-  { path: "/", element: <Home /> },
-  { path: "/login", element: <Login /> },
-  { path: "/register", element: <Register /> },
+  // { path: "/", element: <Home /> },
+
+  {
+    element: <PublicRoute />,
+    children: [
+      { path: "/", element: <Home /> },
+      { path: "/login", element: <Login /> },
+      { path: "/register", element: <Register /> },
+    ],
+  },
+
   { path: "/verify-email/:token", element: <EmailVerified /> },
+
   {
     path: "/dashboard",
     element: (
@@ -29,18 +41,6 @@ const mainRoute = createBrowserRouter([
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <RouterProvider router={mainRoute} />
-    <ToastContainer
-      position="top-right"
-      autoClose={5000}
-      hideProgressBar={false}
-      newestOnTop={false}
-      closeOnClick={false}
-      rtl={false}
-      pauseOnFocusLoss
-      draggable
-      pauseOnHover
-      theme="light"
-      transition={Bounce}
-    />
+    <ToastContainer transition={Bounce} />
   </StrictMode>
 );

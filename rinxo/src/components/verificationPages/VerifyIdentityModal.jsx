@@ -56,11 +56,14 @@ export default function VerifyIdentityModal({
       const result = await response.json();
       toast.success(result.message || "NIC uploaded successfully!");
       setModalOpen(false);
+      setActiveSubMenu("undefined")
     } catch (err) {
       console.error("Error uploading NIC images:", err);
       toast.error(err.message || "Failed to upload NIC images!");
+      setActiveSubMenu("undefined")
     } finally {
       setLoading(false);
+      setActiveSubMenu("undefined")
     }
   };
 

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Menu } from "lucide-react";
 import Dashboard from "../admin/Dashboard";
 import UserDashboard from "../user/Dashboard";
@@ -9,6 +9,8 @@ import UserDeposit from "../user/payment/UserDeposit";
 import UserWithdraw from "../user/payment/UserWithdraw"; 
 import VerificationRoute from "../../../routes/VerificationRoute";
 import Settings from "./Settings";
+import { specificData } from "../../../utils/user.utils";
+import VerifyIdentity from "../../../components/verificationPages/VerifyIdentity";
 
 export default function MainContent({
   sidebarOpen,
@@ -21,13 +23,39 @@ export default function MainContent({
 }) {
   const role = userData.role;
 
+      const [users, setUsers] = useState([]);
+    // const [showVerify, setShowVerify] = useState(false);
+      useEffect(() => {
+        const fetchUser = async () => {
+          const data = await specificData(userData._id);
+          console.log(data.data)
+          setUsers(data.data);
+        };
+        fetchUser();
+      }, [activeSubMenu]);
+
   // ✅ Reset sub menu when main menu changes
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setActiveSubMenu("undefined");
-    }, 0); 
-    return () => clearTimeout(timer);
+ useEffect(() => {
+    setActiveSubMenu("undefined");
   }, [activeMenu]);
+
+// useEffect(() => {
+//   if (userData?.role === "user" && userData?.status === "inActive") {
+//     setActiveSubMenu("undefined");
+//     activeMenu === "dashboard"
+//     const timer = setTimeout(() => {
+//       setShowVerify(true);
+//     }, 0);
+
+//     return () => clearTimeout(timer);
+//   }
+// }, []);
+
+
+//     if (showVerify) {
+//     return <VerifyIdentity user={userData} setActiveSubMenu={setActiveSubMenu} />;
+//   }
+ 
 
   return (
     <>
@@ -53,20 +81,25 @@ export default function MainContent({
           <h1 className="text-xl font-bold capitalize">
             {menuItems.find((m) => m.id === activeMenu)?.label}
           </h1>
-          <p
-            className={`px-2 py-1 rounded-full text-xs font-semibold ${
-              // in your table & modal
-              userData.status === "active"
-                ? "bg-green-100 text-green-700"
-                : userData.status === "inActive"
-                ? "bg-gray-100 text-gray-700"
-                : userData.status === "pending"
-                ? "bg-yellow-100 text-yellow-700"
-                : "bg-red-100 text-red-700"
-            }`}
-          >
-            {userData.status}
-          </p>
+          {
+            users.role === "user" && (
+            <p
+              className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                // in your table & modal
+                users.status === "active"
+                  ? "bg-green-100 text-green-700"
+                  : users.status === "inActive"
+                  ? "bg-gray-100 text-gray-700"
+                  : users.status === "pending"
+                  ? "bg-yellow-100 text-yellow-700"
+                  : "bg-red-100 text-red-700"
+              }`}
+            >
+              {users.status}
+            </p>
+            )
+          }
+          
         </header>
 
         {/* Page Content */}

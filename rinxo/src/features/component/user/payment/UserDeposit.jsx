@@ -19,9 +19,10 @@ import {
 
 export default function UserDeposit({ setActiveSubMenu, user }) {
   const [amount, setAmount] = useState("");
-  const [selectedCrypto, setSelectedCrypto] = useState("btc");
+  const [selectedCrypto, setSelectedCrypto] = useState("eth");
   const [currencies, setCurrencies] = useState([]);
   const [estimatedAmount, setEstimatedAmount] = useState(null);
+  const [estimating, setEstimating] = useState(false);
   const [loading, setLoading] = useState(false);
   const [payment, setPayment] = useState(null);
   const [error, setError] = useState("");
@@ -39,6 +40,7 @@ export default function UserDeposit({ setActiveSubMenu, user }) {
         );
 
         setCurrencies(filtered.length ? filtered : popularCryptos);
+        console.log("filtered: ", filtered);
       } catch (err) {
         console.error("Error loading currencies:", err);
         setCurrencies(["btc", "eth", "usdt", "ltc"]);
@@ -51,17 +53,21 @@ export default function UserDeposit({ setActiveSubMenu, user }) {
   /* ================= PRICE ESTIMATION (DEBOUNCE) ================= */
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (amount && parseFloat(amount) > 0) {
+      if (amount && parseFloat(amount) >= 10) {
         handleEstimate();
       } else {
         setEstimatedAmount(null);
+        setError(""); // Clear error when amount changes
       }
-    }, 500);
+    }, 1000);
 
     return () => clearTimeout(timer);
   }, [amount, selectedCrypto]);
 
   const handleEstimate = async () => {
+    setEstimating(true);
+    setError(""); // Clear previous errors
+    
     try {
       const data = await getEstimate({
         amount: parseFloat(amount),
@@ -71,17 +77,46 @@ export default function UserDeposit({ setActiveSubMenu, user }) {
       if (!data.estimated_amount) throw new Error("Estimate unavailable");
 
       setEstimatedAmount(data.estimated_amount);
-      setError("");
     } catch (err) {
       console.error("Estimate error:", err);
       setEstimatedAmount(null);
+      
+      // Handle specific error cases
+      if (err.response?.status === 403) {
+        setError("API key validation failed. Please check your NOWPayments API configuration.");
+      } else if (err.response?.data?.message) {
+        setError(err.response.data.message);
+      } else {
+        setError("Unable to get price estimate. Please try again.");
+      }
+    } finally {
+      setEstimating(false);
     }
   };
 
   /* ================= CREATE PAYMENT ================= */
   const handleCreatePayment = async () => {
-    if (!amount || parseFloat(amount) < 10) {
+    const parsedAmount = parseFloat(amount);
+    
+    // Validation checks
+    if (!amount || isNaN(parsedAmount)) {
+      setError("Please enter a valid amount");
+      return;
+    }
+
+    if (parsedAmount < 10) {
       setError("Minimum deposit amount is $10");
+      return;
+    }
+
+    // ✅ CRITICAL: Wait for estimate to complete first
+    if (estimating) {
+      setError("Please wait for price estimation to complete");
+      return;
+    }
+
+    if (!estimatedAmount) {
+      setError("Please wait for price estimation to complete");
       return;
     }
 
@@ -89,11 +124,21 @@ export default function UserDeposit({ setActiveSubMenu, user }) {
     setError("");
 
     try {
+      // Normalize the currency to match NOWPayments format
+      const normalizedCurrency = normalizeCurrency(selectedCrypto);
+      
+      console.log("Creating payment with:", {
+        amount: parsedAmount,
+        currency: normalizedCurrency,
+        estimatedCryptoAmount: estimatedAmount,
+        originalCrypto: selectedCrypto
+      });
+
       const payload = {
-        price_amount: parseFloat(amount),
+        price_amount: parsedAmount,
         price_currency: "usd",
-        pay_currency: selectedCrypto,
-        order_description: `Wallet deposit of $${amount}`,
+        pay_currency: normalizedCurrency.toLowerCase(),
+        order_description: `Wallet deposit of ${parsedAmount}`,
         ipn_callback_url: `${import.meta.env.VITE_API_URL || "http://localhost:8000/api"}/payment/ipn-callback`,
         success_url: window.location.origin + "/manage-funds?status=success",
         cancel_url: window.location.origin + "/deposit?status=cancelled",
@@ -106,7 +151,13 @@ export default function UserDeposit({ setActiveSubMenu, user }) {
 
       setPayment(data);
     } catch (err) {
-      setError(err.response?.data?.error || "Failed to create payment");
+      const errorMsg = err.response?.data?.message || err.response?.data?.error || err.message || "Failed to create payment";
+      setError(errorMsg);
+      console.error("Payment creation error:", {
+        status: err.response?.status,
+        data: err.response?.data,
+        message: err.message
+      });
     } finally {
       setLoading(false);
     }
@@ -290,6 +341,7 @@ export default function UserDeposit({ setActiveSubMenu, user }) {
             />
           </div>
           <p className="text-xs text-gray-500 mt-1">Minimum deposit: $10</p>
+          <p className="text-xs text-gray-500 mt-1">Minimum deposit BTC: $24</p>
         </div>
 
         {/* Cryptocurrency Selection */}
@@ -302,11 +354,12 @@ export default function UserDeposit({ setActiveSubMenu, user }) {
               <button
                 key={crypto}
                 onClick={() => setSelectedCrypto(crypto)}
-                className={`p-4 rounded-lg border-2 transition ${
+                className={`p-4 rounded-lg border-2 transition  disabled:bg-gray-300 disabled:cursor-not-allowed ${
                   selectedCrypto === crypto
                     ? "border-yellow-400 bg-yellow-50"
                     : "border-gray-200 hover:border-gray-300"
                 }`}
+                disabled={crypto === "btc" && amount < 24 }
               >
                 <div className="text-2xl mb-1">{cryptoIcons[crypto] || "💰"}</div>
                 <p className="font-semibold text-gray-800 uppercase">{crypto}</p>
@@ -316,14 +369,27 @@ export default function UserDeposit({ setActiveSubMenu, user }) {
         </div>
 
         {/* Estimated Amount */}
-        {estimatedAmount && (
+        {amount && parseFloat(amount) >= 10 && (
           <div className="bg-gray-50 rounded-lg p-4">
-            <p className="text-sm text-gray-600 mb-1">
-              You will pay approximately:
-            </p>
-            <p className="text-2xl font-bold text-gray-800">
-              {estimatedAmount} {selectedCrypto.toUpperCase()}
-            </p>
+            {estimating ? (
+              <div className="flex items-center gap-2 text-gray-600">
+                <Loader2 size={20} className="animate-spin" />
+                <p className="text-sm">Calculating crypto amount...</p>
+              </div>
+            ) : estimatedAmount ? (
+              <>
+                <p className="text-sm text-gray-600 mb-1">
+                  You will pay approximately:
+                </p>
+                <p className="text-2xl font-bold text-gray-800">
+                  {estimatedAmount} {selectedCrypto.toUpperCase()}
+                </p>
+              </>
+            ) : (
+              <p className="text-sm text-gray-500">
+                Waiting for price estimate...
+              </p>
+            )}
           </div>
         )}
 
@@ -346,13 +412,23 @@ export default function UserDeposit({ setActiveSubMenu, user }) {
         {/* Submit Button */}
         <button
           onClick={handleCreatePayment}
-          disabled={loading || !amount || parseFloat(amount) < 10}
+          disabled={loading || estimating || !amount || parseFloat(amount) < 10 || !estimatedAmount || (selectedCrypto === "btc" && amount < 24)}
           className="w-full bg-yellow-400 hover:bg-yellow-500 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-lg transition flex items-center justify-center gap-2"
         >
           {loading ? (
             <>
               <Loader2 size={20} className="animate-spin" />
               Creating Payment...
+            </>
+          ) : estimating ? (
+            <>
+              <Loader2 size={20} className="animate-spin" />
+              Calculating...
+            </>
+          ) : !estimatedAmount && amount && parseFloat(amount) >= 10 ? (
+            <>
+              <Loader2 size={20} className="animate-spin" />
+              Getting Price...
             </>
           ) : (
             <>
@@ -361,6 +437,13 @@ export default function UserDeposit({ setActiveSubMenu, user }) {
             </>
           )}
         </button>
+
+        {/* Helper text for disabled button */}
+        {!estimatedAmount && amount && parseFloat(amount) >= 10 && (
+          <p className="text-xs text-center text-gray-500 -mt-3">
+            Please wait for price calculation to complete
+          </p>
+        )}
 
         {/* Info */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
