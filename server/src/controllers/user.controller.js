@@ -1,6 +1,58 @@
 import bcrypt from "bcryptjs";
 import User from "../models/User.model.js";
 
+// export const uploadNICImages = async (req, res) => {
+//   try {
+//     const userData = req.user;
+
+//     if (!req.files?.frontImage || !req.files?.backImage) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Both front and back NIC images are required!",
+//       });
+//     }
+
+//     const frontImagePath = req.files.frontImage[0].path;
+//     const backImagePath = req.files.backImage[0].path;
+
+//     const user = await User.findOne({ email: userData.email });
+
+//     if (!user) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "User does not exist!",
+//       });
+//     }
+
+//     if (["active", "pending"].includes(user.status)) {
+//       return res.status(400).json({
+//         success: false,
+//         message: `NIC already uploaded! Status: ${user.status}`,
+//       });
+//     }
+
+//     user.nic = {
+//       frontImage: frontImagePath,
+//       backImage: backImagePath,
+//     };
+//     user.status = "pending";
+
+//     await user.save();
+
+//     return res.status(201).json({
+//       success: true,
+//       message: "NIC uploaded successfully!",
+//       nicStatus: user.status,
+//     });
+//   } catch (err) {
+//     return res.status(500).json({
+//       success: false,
+//       message: `Server Error: ${err.message}`,
+//     });
+//   }
+// };
+
+
 export const uploadNICImages = async (req, res) => {
   try {
     const userData = req.user;
@@ -12,8 +64,18 @@ export const uploadNICImages = async (req, res) => {
       });
     }
 
-    const frontImagePath = req.files.frontImage[0].path;
-    const backImagePath = req.files.backImage[0].path;
+    // ✅ Convert backslashes to forward slashes
+    const frontImagePath = req.files.frontImage[0].path.replace(/\\/g, "/");
+    const backImagePath = req.files.backImage[0].path.replace(/\\/g, "/");
+
+    // ✅ Extract relative path WITHOUT leading slash
+    const frontImageRelative = frontImagePath.includes("uploads/")
+      ? frontImagePath.split("uploads/")[1]
+      : frontImagePath;
+    
+    const backImageRelative = backImagePath.includes("uploads/")
+      ? backImagePath.split("uploads/")[1]
+      : backImagePath;
 
     const user = await User.findOne({ email: userData.email });
 
@@ -32,8 +94,8 @@ export const uploadNICImages = async (req, res) => {
     }
 
     user.nic = {
-      frontImage: frontImagePath,
-      backImage: backImagePath,
+      frontImage: frontImageRelative, // ✅ Store as "nic/filename.png" (no leading slash)
+      backImage: backImageRelative,
     };
     user.status = "pending";
 
@@ -43,6 +105,7 @@ export const uploadNICImages = async (req, res) => {
       success: true,
       message: "NIC uploaded successfully!",
       nicStatus: user.status,
+      nic: user.nic,
     });
   } catch (err) {
     return res.status(500).json({

@@ -19,9 +19,12 @@ export const setUser = (user) => {
       _id: user._id,
       email: user.email,
       role: user.role,
-      status:user.status
+      status: user.status,
     },
-    secret
+    secret,
+    {
+      expiresIn: "1h", // ⏱ token expires in 1 hour
+    }
   );
 };
 

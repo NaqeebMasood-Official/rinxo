@@ -13,6 +13,35 @@ export const API = axios.create({
 });
 
 /* =====================================================
+   🔥 GLOBAL RESPONSE INTERCEPTOR (AUTO LOGOUT)
+   ===================================================== */
+API.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const status = error?.response?.status;
+    const url = error?.config?.url;
+
+    // ❌ Skip auth check endpoint
+    if (url?.includes("/auth/check")) {
+      return Promise.reject(error);
+    }
+
+    if (status === 401 || status === 403) {
+      try {
+        await API.post("/auth/logout");
+      } catch {
+        // ignore
+      } finally {
+        window.location.href = "/login";
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
+
+
+/* =====================================================
    REGISTER USER
    Backend: POST /api/auth/register
    ===================================================== */

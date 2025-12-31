@@ -1,19 +1,22 @@
 import { Edit, Eye, Plus, Trash2, X } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import { userDeleteData, usersData, usersUpdateData } from "../../../utils/user.utils";
+import {
+  userDeleteData,
+  usersData,
+  usersUpdateData,
+} from "../../../utils/user.utils";
 import { toast } from "react-toastify";
 
 export default function UserProfile() {
+  const [users, setUsers] = useState([]);
 
-    const [users, setUsers] = useState([]);
-  
-    useEffect(() => {
-      const fetchUsers = async () => {
-        const data = await usersData();
-        setUsers(data.data);
-      };
-      fetchUsers();
-    }, []);
+  useEffect(() => {
+    const fetchUsers = async () => {
+      const data = await usersData();
+      setUsers(data.data);
+    };
+    fetchUsers();
+  }, []);
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -26,6 +29,7 @@ export default function UserProfile() {
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState("");
   const [selectedUser, setSelectedUser] = useState(null);
+const [previewImage, setPreviewImage] = useState(null);
 
   const [currentPage, setCurrentPage] = useState(1);
   const [usersPerPage, setUsersPerPage] = useState(5);
@@ -70,14 +74,13 @@ export default function UserProfile() {
       role: "user",
     });
   };
-const [showDeleteModal, setShowDeleteModal] = useState(false);
-const [userToDelete, setUserToDelete] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
 
   const handleDeleteClick = (user) => {
-  setUserToDelete(user);
-  setShowDeleteModal(true);
-};
-
+    setUserToDelete(user);
+    setShowDeleteModal(true);
+  };
 
   const statusCounts = users.reduce(
     (acc, user) => {
@@ -121,10 +124,10 @@ const [userToDelete, setUserToDelete] = useState(null);
         // Update user via API
         let updateData = await usersUpdateData(selectedUser._id, {
           status: formData.status,
-        }); 
+        });
         if (updateData.success === true) {
           toast.success(updateData.message);
-        }else{
+        } else {
           toast.error(updateData.message);
         }
 
@@ -141,26 +144,25 @@ const [userToDelete, setUserToDelete] = useState(null);
   };
 
   const confirmDelete = async () => {
-  try {
-    const deleteData = await userDeleteData(userToDelete._id);
+    try {
+      const deleteData = await userDeleteData(userToDelete._id);
 
-    if (deleteData.success === true) {
-      toast.success(deleteData.message);
+      if (deleteData.success === true) {
+        toast.success(deleteData.message);
 
-      // Remove user from UI
-      setUsers(users.filter((u) => u._id !== userToDelete._id));
-    } else {
-      toast.error(deleteData.message);
+        // Remove user from UI
+        setUsers(users.filter((u) => u._id !== userToDelete._id));
+      } else {
+        toast.error(deleteData.message);
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to delete user");
+    } finally {
+      setShowDeleteModal(false);
+      setUserToDelete(null);
     }
-  } catch (error) {
-    console.error(error);
-    toast.error("Failed to delete user");
-  } finally {
-    setShowDeleteModal(false);
-    setUserToDelete(null);
-  }
-};
-
+  };
 
   // Filtered & paginated users
   const filteredUsers = users.filter((user) => {
@@ -539,17 +541,46 @@ const [userToDelete, setUserToDelete] = useState(null);
                         CNIC Front
                       </label>
                       {selectedUser?.nic?.frontImage ? (
+                    
                         <img
-                          src={selectedUser.nic.frontImage}
+                          src={`${import.meta.env.VITE_BACKEND_URL}/uploads/${selectedUser.nic.frontImage}`}
                           alt="CNIC Front"
-                          className="w-full h-auto border rounded-md shadow-md object-cover"
+                          onClick={() =>
+                            setPreviewImage(
+                              `${import.meta.env.VITE_BACKEND_URL}/uploads/${selectedUser.nic.frontImage}`
+                            )
+                          }
+                          className="w-full h-[180px] border rounded-md shadow-md object-cover cursor-pointer hover:opacity-90"
                         />
+
+                       
                       ) : (
                         <p className="text-gray-400 text-sm">
                           No CNIC front uploaded
                         </p>
                       )}
                     </div>
+                      {previewImage && (
+                        <div
+                          className="fixed inset-0 bg-black/80 z-[9999] flex items-center justify-center p-4"
+                          onClick={() => setPreviewImage(null)}
+                        >
+                          <div className="relative max-w-4xl w-full">
+                            <button
+                              onClick={() => setPreviewImage(null)}
+                              className="absolute -top-10 right-0 text-white hover:text-gray-300"
+                            >
+                              <X size={32} />
+                            </button>
+
+                            <img
+                              src={previewImage}
+                              alt="CNIC Preview"
+                              className="w-full max-h-[70vh] object-contain rounded-lg shadow-2xl"
+                            />
+                          </div>
+                        </div>
+                      )}
 
                     <div className="flex-1">
                       <label className="text-sm text-gray-600 block mb-1">
@@ -557,10 +588,15 @@ const [userToDelete, setUserToDelete] = useState(null);
                       </label>
                       {selectedUser?.nic?.backImage ? (
                         <img
-                          src={selectedUser.nic.backImage}
+                          src={`${import.meta.env.VITE_BACKEND_URL}/uploads/${selectedUser.nic.backImage}`}
                           alt="CNIC Back"
-                          className="w-full h-auto border rounded-md shadow-md object-cover"
-                        />
+                          onClick={() =>
+                            setPreviewImage(
+                              `${import.meta.env.VITE_BACKEND_URL}/uploads/${selectedUser.nic.backImage}`
+                            )
+                          }
+                          className="w-full h-[180px] border rounded-md shadow-md object-cover cursor-pointer hover:opacity-90"
+                        /> 
                       ) : (
                         <p className="text-gray-400 text-sm">
                           No CNIC back uploaded
@@ -753,50 +789,46 @@ const [userToDelete, setUserToDelete] = useState(null);
       )}
 
       {showDeleteModal && (
-  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-    <div className="bg-white rounded-xl shadow-xl w-full max-w-sm">
-      {/* Header */}
-      <div className="p-4 border-b border-gray-200">
-        <h3 className="text-lg font-bold text-gray-800">
-          Confirm Deletion
-        </h3>
-      </div>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm">
+            {/* Header */}
+            <div className="p-4 border-b border-gray-200">
+              <h3 className="text-lg font-bold text-gray-800">
+                Confirm Deletion
+              </h3>
+            </div>
 
-      {/* Body */}
-      <div className="p-4 space-y-3">
-        <p className="text-sm text-gray-700">
-          Are you sure you want to delete this user?
-        </p>
+            {/* Body */}
+            <div className="p-4 space-y-3">
+              <p className="text-sm text-gray-700">
+                Are you sure you want to delete this user?
+              </p>
 
-        <div className="bg-gray-50 p-3 rounded-lg text-sm">
-          <p className="font-semibold">{userToDelete?.fullName}</p>
-          <p className="text-gray-600">{userToDelete?.email}</p>
+              <div className="bg-gray-50 p-3 rounded-lg text-sm">
+                <p className="font-semibold">{userToDelete?.fullName}</p>
+                <p className="text-gray-600">{userToDelete?.email}</p>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="p-4 border-t border-gray-200 flex gap-3">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 rounded-lg"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={confirmDelete}
+                className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-2 rounded-lg"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
-
-      {/* Footer */}
-      <div className="p-4 border-t border-gray-200 flex gap-3">
-        <button
-          onClick={() => setShowDeleteModal(false)}
-          className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 rounded-lg"
-        >
-          Cancel
-        </button>
-
-        <button
-          onClick={confirmDelete}
-          className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-2 rounded-lg"
-        >
-          Delete
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-
-
-
-
+      )}
     </div>
   );
 }
