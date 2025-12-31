@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
 import User from "../models/User.model.js";
+import { Payment } from "../models/payment.models.js";
 
 // export const uploadNICImages = async (req, res) => {
 //   try {
@@ -294,48 +295,6 @@ export const showloggedInAdminData = async (req, res) => {
   }
 };
 
-// export const updateLoggedInAdminData = async (req, res) => {
-//   try {
-//     const id = req.user._id;
-//     // const id = req.user._id;
-//     const { fullName, phoneNumber, changedPassword } = req.body;
-
-//     if (!id || !fullName || !phoneNumber || !changedPassword) {
-//       return res.status(400).json({
-//         success: false,
-//         message: "User ID is required!",
-//       });
-//     }
-
-//     const hashedPassword = await bcrypt.hash(changedPassword, 10);
-
-//     const updateData = {
-//       fullName,
-//       phoneNumber,
-//       password: hashedPassword,
-//     };
-
-//     const updatedUser = await User.findOneAndUpdate(
-//       { _id: id },
-//       { $set: updateData },
-//       { new: true, runValidators: true }
-//     )
-//       .select("fullName")
-//       .select("phoneNumber");
-
-//     return res.status(200).json({
-//       success: true,
-//       message: "Profile updated successfully!",
-//       user: updatedUser,
-//     });
-//   } catch (err) {
-//     return res.status(500).json({
-//       success: false,
-//       message: `Server Error: ${err.message}`,
-//     });
-//   }
-// };
-
 export const updateAdminProfile = async (req, res) => {
   try {
     const id = req.params.id;
@@ -428,6 +387,47 @@ export const updateAdminPassword = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: error.message,
+    });
+  }
+};
+
+export const showAllPaymentsOrFunds = async (req, res) => {
+  try {
+    const payments = await Payment.find({});
+
+    if (!payments) {
+      return res.status(404).json({
+        success: false,
+        message: "Payments/Funds not found!",
+      });
+    }
+
+    const users = await Promise.all(
+      payments.map(async (payment) => {
+        const user = await User.findById(payment.user_id);
+
+        if (!user) return null;
+
+        return {
+          id: user._id,
+          name: user.fullName,
+          email: user.email,
+          status: user.status,
+          phoneNumber: user.phoneNumber,
+        };
+      })
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Payments/Funds retrieved successfully!",
+      payments,
+      users,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: `Server Error: ${err.message}`,
     });
   }
 };
