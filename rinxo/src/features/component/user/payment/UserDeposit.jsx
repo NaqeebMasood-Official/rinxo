@@ -40,7 +40,6 @@ export default function UserDeposit({ setActiveSubMenu, user }) {
         );
 
         setCurrencies(filtered.length ? filtered : popularCryptos);
-        console.log("filtered: ", filtered);
       } catch (err) {
         console.error("Error loading currencies:", err);
         setCurrencies(["btc", "eth", "usdt", "ltc"]);
@@ -67,7 +66,7 @@ export default function UserDeposit({ setActiveSubMenu, user }) {
   const handleEstimate = async () => {
     setEstimating(true);
     setError(""); // Clear previous errors
-    
+
     try {
       const data = await getEstimate({
         amount: parseFloat(amount),
@@ -80,10 +79,12 @@ export default function UserDeposit({ setActiveSubMenu, user }) {
     } catch (err) {
       console.error("Estimate error:", err);
       setEstimatedAmount(null);
-      
+
       // Handle specific error cases
       if (err.response?.status === 403) {
-        setError("API key validation failed. Please check your NOWPayments API configuration.");
+        setError(
+          "API key validation failed. Please check your NOWPayments API configuration."
+        );
       } else if (err.response?.data?.message) {
         setError(err.response.data.message);
       } else {
@@ -97,7 +98,7 @@ export default function UserDeposit({ setActiveSubMenu, user }) {
   /* ================= CREATE PAYMENT ================= */
   const handleCreatePayment = async () => {
     const parsedAmount = parseFloat(amount);
-    
+
     // Validation checks
     if (!amount || isNaN(parsedAmount)) {
       setError("Please enter a valid amount");
@@ -126,20 +127,22 @@ export default function UserDeposit({ setActiveSubMenu, user }) {
     try {
       // Normalize the currency to match NOWPayments format
       const normalizedCurrency = normalizeCurrency(selectedCrypto);
-      
-      console.log("Creating payment with:", {
-        amount: parsedAmount,
-        currency: normalizedCurrency,
-        estimatedCryptoAmount: estimatedAmount,
-        originalCrypto: selectedCrypto
-      });
+
+      // console.log("Creating payment with:", {
+      //   amount: parsedAmount,
+      //   currency: normalizedCurrency,
+      //   estimatedCryptoAmount: estimatedAmount,
+      //   originalCrypto: selectedCrypto,
+      // });
 
       const payload = {
         price_amount: parsedAmount,
         price_currency: "usd",
         pay_currency: normalizedCurrency.toLowerCase(),
         order_description: `Wallet deposit of ${parsedAmount}`,
-        ipn_callback_url: `${import.meta.env.VITE_API_URL || "http://localhost:8000/api"}/payment/ipn-callback`,
+        ipn_callback_url: `${
+          import.meta.env.VITE_API_URL || "http://localhost:8000/api"
+        }/payment/ipn-callback`,
         success_url: window.location.origin + "/manage-funds?status=success",
         cancel_url: window.location.origin + "/deposit?status=cancelled",
       };
@@ -148,15 +151,34 @@ export default function UserDeposit({ setActiveSubMenu, user }) {
         payload,
         userId: user._id,
       });
-
+      console.log("data: ", data);
+      console.log("payload for payments API: ", {
+        payment_id: data.payment_id,
+        order_id: data.order_id,
+        // user_id: data.user_id,
+        price_amount: data.price_amount,
+        price_currency: data.price_currency,
+        pay_amount: data.pay_amount,
+        pay_currency: data.pay_currency,
+        pay_address: data.pay_address,
+        payment_status: data.payment_status,
+        actually_paid: data.actually_paid,
+        invoice_id: data.invoice_id,
+        created_at: data.created_at,
+        metadata: data.metadata,
+      });
       setPayment(data);
     } catch (err) {
-      const errorMsg = err.response?.data?.message || err.response?.data?.error || err.message || "Failed to create payment";
+      const errorMsg =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        err.message ||
+        "Failed to create payment";
       setError(errorMsg);
       console.error("Payment creation error:", {
         status: err.response?.status,
         data: err.response?.data,
-        message: err.message
+        message: err.message,
       });
     } finally {
       setLoading(false);
@@ -245,7 +267,9 @@ export default function UserDeposit({ setActiveSubMenu, user }) {
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Payment ID</span>
-              <span className="text-sm text-gray-500">{payment.payment_id}</span>
+              <span className="text-sm text-gray-500">
+                {payment.payment_id}
+              </span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Status</span>
@@ -257,7 +281,10 @@ export default function UserDeposit({ setActiveSubMenu, user }) {
 
           {/* Warning */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex gap-3">
-            <AlertCircle size={20} className="text-blue-600 flex-shrink-0 mt-0.5" />
+            <AlertCircle
+              size={20}
+              className="text-blue-600 flex-shrink-0 mt-0.5"
+            />
             <div className="text-sm text-blue-800">
               <p className="font-semibold mb-1">Important:</p>
               <ul className="list-disc list-inside space-y-1">
@@ -359,10 +386,14 @@ export default function UserDeposit({ setActiveSubMenu, user }) {
                     ? "border-yellow-400 bg-yellow-50"
                     : "border-gray-200 hover:border-gray-300"
                 }`}
-                disabled={crypto === "btc" && amount < 24 }
+                disabled={crypto === "btc" && amount < 24}
               >
-                <div className="text-2xl mb-1">{cryptoIcons[crypto] || "💰"}</div>
-                <p className="font-semibold text-gray-800 uppercase">{crypto}</p>
+                <div className="text-2xl mb-1">
+                  {cryptoIcons[crypto] || "💰"}
+                </div>
+                <p className="font-semibold text-gray-800 uppercase">
+                  {crypto}
+                </p>
               </button>
             ))}
           </div>
@@ -412,7 +443,14 @@ export default function UserDeposit({ setActiveSubMenu, user }) {
         {/* Submit Button */}
         <button
           onClick={handleCreatePayment}
-          disabled={loading || estimating || !amount || parseFloat(amount) < 10 || !estimatedAmount || (selectedCrypto === "btc" && amount < 24)}
+          disabled={
+            loading ||
+            estimating ||
+            !amount ||
+            parseFloat(amount) < 10 ||
+            !estimatedAmount ||
+            (selectedCrypto === "btc" && amount < 24)
+          }
           className="w-full bg-yellow-400 hover:bg-yellow-500 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-lg transition flex items-center justify-center gap-2"
         >
           {loading ? (
