@@ -128,7 +128,7 @@ export default function MainContent({
                   ),
                   withdraw: (
                     <VerificationRoute setActiveSubMenu={setActiveSubMenu}>
-                      <UserWithdraw setActiveSubMenu={setActiveSubMenu} />
+                      <UserWithdraw setActiveSubMenu={setActiveSubMenu} user={userData} />
                     </VerificationRoute>
                   ),
                   undefined: (

@@ -47,6 +47,7 @@ import authRoutes from "./routes/auth.routes.js";
 import dashboardRoutes from "./routes/dashboard.routes.js";
 import userRoutes from "./routes/user.routes.js"; 
 import paymentRoute from "./routes/nowpayment.routes.js";
+import withdrawalRoute from "./routes/withdrawal.routes.js";
 
 // ✅ Get __dirname equivalent in ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -74,5 +75,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/payment", paymentRoute);
+app.use("/api/withdrawal", withdrawalRoute);
+
 
 export default app;

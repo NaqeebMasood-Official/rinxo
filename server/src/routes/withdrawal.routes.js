@@ -1,30 +1,68 @@
 import express from 'express';
 import {
   createWithdrawal,
-  getWithdrawals,
+  getUserWithdrawals,
   getWithdrawalById,
-  updateWithdrawalStatus,
-  getWithdrawalStats,
+  cancelWithdrawal,
+  processWithdrawal,
+  getWithdrawalStats
 } from '../controllers/withdrawal.controller.js';
 
-const withdrawRoute = express.Router();
+const withdrawalRoute = express.Router();
 
-// Auth middleware
+// ================= AUTH MIDDLEWARE =================
 const authenticateUser = (req, res, next) => {
   const userId = req.headers['user-id'] || req.body.user_id;
-  if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+  
+  if (!userId) {
+    return res.status(401).json({ 
+      error: 'Unauthorized',
+      message: 'User ID is required in headers or body' 
+    });
+  }
+  
   req.userId = userId;
   next();
 };
 
-withdrawRoute.post('/withdraw', authenticateUser, createWithdrawal);
-withdrawRoute.get('/withdrawals', authenticateUser, getWithdrawals);
-withdrawRoute.get('/withdrawal/:withdrawal_id', authenticateUser, getWithdrawalById);
-withdrawRoute.patch(
-  '/withdrawal/:withdrawal_id/status',
-  authenticateUser,
-  updateWithdrawalStatus
-);
-withdrawRoute.get('/withdrawal-stats', authenticateUser, getWithdrawalStats);
+// ================= ADMIN MIDDLEWARE (Optional) =================
+const authenticateAdmin = (req, res, next) => {
+  const adminKey = req.headers['admin-key'];
+  
+  if (adminKey !== process.env.ADMIN_SECRET_KEY) {
+    return res.status(403).json({ 
+      error: 'Forbidden',
+      message: 'Admin access required' 
+    });
+  }
+  
+  next();
+};
 
-export default withdrawRoute;
+// ================= USER ROUTES =================
+
+// Create withdrawal request
+withdrawalRoute.post('/create', authenticateUser, createWithdrawal);
+
+// Get user's withdrawals
+withdrawalRoute.get('/my-withdrawals', authenticateUser, getUserWithdrawals);
+
+// Get specific withdrawal
+withdrawalRoute.get('/:withdrawal_id', authenticateUser, getWithdrawalById);
+
+// Cancel pending withdrawal
+withdrawalRoute.post('/:withdrawal_id/cancel', authenticateUser, cancelWithdrawal);
+
+// Get withdrawal statistics
+withdrawalRoute.get('/stats/summary', authenticateUser, getWithdrawalStats);
+
+// ================= ADMIN ROUTES =================
+
+// Process withdrawal (mark as completed or failed)
+withdrawalRoute.post(
+  '/:withdrawal_id/process', 
+  authenticateAdmin, 
+  processWithdrawal
+);
+
+export default withdrawalRoute;
