@@ -140,8 +140,8 @@ export default function UserDeposit({ setActiveSubMenu, user }) {
         pay_currency: normalizedCurrency.toLowerCase(),
         order_description: `Wallet deposit of ${parsedAmount}`,
         ipn_callback_url: `${import.meta.env.VITE_API_URL || "http://localhost:8000/api"}/payment/ipn-callback`,
-        success_url: window.location.origin + "/manage-funds?status=success",
-        cancel_url: window.location.origin + "/deposit?status=cancelled",
+        success_url: window.location.origin + "/dashboard/payment-status?status=success",
+        cancel_url: window.location.origin + "/dashboard/payment-status?status=cancelled",
       };
 
       const data = await createPayment({

@@ -83,6 +83,8 @@ const userSchema = new mongoose.Schema(
       default: 0,
       min: 0,
     },
+    // funds_before: { type: Number },
+    // funds_after: { type: Number },
 
     transactions: {
       type: [transactionSchema],

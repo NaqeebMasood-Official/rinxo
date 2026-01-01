@@ -12,7 +12,8 @@ import EmailVerified from "./components/verificationPages/EmailVerified.jsx";
 import ProtectedRoute from "./routes/ProtectedRoute.jsx";
 import PublicRoute from "./routes/PublicRoute.jsx";
 
-import { Bounce, ToastContainer } from "react-toastify";
+import { Bounce, ToastContainer } from "react-toastify"; 
+import PaymentStatus from "./features/component/user/payment/PaymentStatus.jsx";
 
 const mainRoute = createBrowserRouter([
   // { path: "/", element: <Home /> },
@@ -27,7 +28,14 @@ const mainRoute = createBrowserRouter([
   },
 
   { path: "/verify-email/:token", element: <EmailVerified /> },
-
+   {
+    path: "/dashboard/payment-status",
+    element: (
+      <ProtectedRoute>
+        <PaymentStatus />
+      </ProtectedRoute>
+    ),
+  },
   {
     path: "/dashboard",
     element: (

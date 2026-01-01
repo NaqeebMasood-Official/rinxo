@@ -11,7 +11,7 @@ import {
 import Button from "../../../../components/common/Button/Button";
 import axios from "axios";
 
-export default function UserWithdraw({ setActiveSubMenu }) {
+export default function UserWithdraw({ setActiveSubMenu,user }) {
   const [amount, setAmount] = useState("");
   const [withdrawMethod, setWithdrawMethod] = useState("bank");
   const [balance, setBalance] = useState(0);
@@ -44,7 +44,7 @@ export default function UserWithdraw({ setActiveSubMenu }) {
   const fetchBalance = async () => {
     try {
       const response = await axios.get(`${API_URL}/balance`, {
-        headers: { 'user-id': 'USER123' } // Replace with actual user ID
+        headers: { 'user-id': user._id } // Replace with actual user ID
       });
       setBalance(response.data.balance);
     } catch (err) {
@@ -117,10 +117,10 @@ export default function UserWithdraw({ setActiveSubMenu }) {
         `${API_URL}/withdraw`,
         withdrawalData,
         {
-          headers: { 'user-id': 'USER123' } // Replace with actual user ID
+          headers: { 'user-id': user._id} // Replace with actual user ID
         }
       );
-
+      console.log(response)
       setSuccess(true);
       setAmount("");
       setBankDetails({

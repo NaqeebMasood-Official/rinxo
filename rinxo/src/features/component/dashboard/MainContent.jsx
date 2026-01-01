@@ -22,9 +22,10 @@ export default function MainContent({
   setActiveSubMenu,
 }) {
   const role = userData.role;
-
+    
       const [users, setUsers] = useState([]);
     // const [showVerify, setShowVerify] = useState(false);
+    
       useEffect(() => {
         const fetchUser = async () => {
           const data = await specificData(userData._id);
@@ -33,12 +34,13 @@ export default function MainContent({
         };
         fetchUser();
       }, [activeSubMenu]);
-
+       
   // ✅ Reset sub menu when main menu changes
  useEffect(() => {
     setActiveSubMenu("undefined");
   }, [activeMenu]);
 
+  
 // useEffect(() => {
 //   if (userData?.role === "user" && userData?.status === "inActive") {
 //     setActiveSubMenu("undefined");
@@ -130,7 +132,7 @@ export default function MainContent({
                     </VerificationRoute>
                   ),
                   undefined: (
-                    <UserDashboard setActiveSubMenu={setActiveSubMenu} />
+                    <UserDashboard users={users} setActiveSubMenu={setActiveSubMenu} />
                   ),
                 }[activeSubMenu]}
               {activeMenu === "settings" && <Settings user={userData} />}
