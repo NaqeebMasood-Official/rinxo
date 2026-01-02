@@ -14,7 +14,6 @@ export const protect = (req, res, next) => {
   // ) {
   //   token = req.headers.authorization.split(" ")[1];
   // }
- 
 
   if (!token) {
     return res.status(401).json({ success: false, message: "Not authorized" });
@@ -22,7 +21,7 @@ export const protect = (req, res, next) => {
 
   try {
     const user = jwt.verify(token, process.env.JWT_SECRET);
-     
+
     req.user = user;
     next();
   } catch (err) {
