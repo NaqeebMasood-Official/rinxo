@@ -34,12 +34,13 @@ export default function PaymentStatus() {
       setError("");
 
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL || "http://localhost:8000/api"}/payment/order/${orderId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
+        `${import.meta.env.VITE_API_URL || "http://localhost:8000/api"}/payment/order/${orderId}`
+        // ,
+        // {
+        //   headers: {
+        //     Authorization: `Bearer ${localStorage.getItem("token")}`,
+        //   },
+        // }
       );
 
       if (!response.ok) {

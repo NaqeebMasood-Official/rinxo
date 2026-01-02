@@ -201,7 +201,7 @@ export default function UserWithdraw({ setActiveSubMenu, user }) {
   // Success Screen
   if (success && withdrawalData) {
     return (
-      <div className="p-4 sm:p-6 max-w-2xl mx-auto">
+      <div className="p-4 sm:p-6 max-w-1xl mx-auto">
         <div className="bg-white rounded-xl shadow-sm p-8">
           <div className="text-center">
             <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -276,7 +276,7 @@ export default function UserWithdraw({ setActiveSubMenu, user }) {
 
   // Main Withdrawal Form
   return (
-    <div className="p-4 sm:p-6 mx-auto max-w-2xl">
+    <div className="p-4 sm:p-6 mx-auto max-w-1xl">
       <div className="bg-white rounded-xl shadow-sm p-6 space-y-6">
         <Button
           btnName="Back"

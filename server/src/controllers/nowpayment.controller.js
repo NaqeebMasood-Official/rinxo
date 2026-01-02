@@ -281,18 +281,14 @@ export const getPayments = async (req, res) => {
 // ================= TRANSACTIONS =================
 export const getTransactions = async (req, res) => {
   try {
-    const { limit = 10, page = 0, type } = req.query;
-
+    const { limit = 10, page = 0, type } = req.query; 
     const query = { user_id: req.userId };
-    if (type) query.type = type;
-
+    if (type) query.type = type; 
     const transactions = await Transaction.find(query)
       .sort({ created_at: -1 })
       .limit(Number(limit))
-      .skip(Number(page) * Number(limit));
-
-    const total = await Transaction.countDocuments(query);
-
+      .skip(Number(page) * Number(limit)); 
+    const total = await Transaction.countDocuments(query); 
     res.json({
       transactions,
       total,

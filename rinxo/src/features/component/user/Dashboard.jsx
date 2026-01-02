@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import Button from "../../../components/common/Button/Button";
 
-export default function Dashboard({ setActiveSubMenu,users }) {
+export default function Dashboard({ setActiveSubMenu,user }) { 
   return (
     <div className="p-4 sm:p-6 space-y-6">
       {/* My Funds Section */}
@@ -25,7 +25,8 @@ export default function Dashboard({ setActiveSubMenu,users }) {
           <span className="text-gray-600 text-sm">USD</span>
           <ChevronDown size={16} className="text-gray-600" />
           <span className="text-3xl sm:text-4xl font-bold text-gray-800 ml-1">
-            {users.funds}
+           {Number(user?.funds || 0).toFixed(2)}
+
           </span>
         </div>
 

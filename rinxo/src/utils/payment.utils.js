@@ -62,3 +62,14 @@ export const createPayment = async ({ payload, userId }) => {
   });
   return res.data;
 };
+
+
+export const getUserTransactions = async (userId) =>{
+  console.log(userId)
+  const res = await paymentAPI.get("/payment/transactions",{
+    headers:{
+      "user-id": userId,
+    }
+  });
+  return res;
+}
