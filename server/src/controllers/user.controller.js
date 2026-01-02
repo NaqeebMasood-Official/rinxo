@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import User from "../models/User.model.js";
-import { Payment } from "../models/payment.models.js";
+import { Payment, Transaction } from "../models/payment.models.js";
 
 // export const uploadNICImages = async (req, res) => {
 //   try {
@@ -53,7 +53,6 @@ import { Payment } from "../models/payment.models.js";
 //   }
 // };
 
-
 export const uploadNICImages = async (req, res) => {
   try {
     const userData = req.user;
@@ -73,7 +72,7 @@ export const uploadNICImages = async (req, res) => {
     const frontImageRelative = frontImagePath.includes("uploads/")
       ? frontImagePath.split("uploads/")[1]
       : frontImagePath;
-    
+
     const backImageRelative = backImagePath.includes("uploads/")
       ? backImagePath.split("uploads/")[1]
       : backImagePath;
@@ -391,9 +390,18 @@ export const updateAdminPassword = async (req, res) => {
   }
 };
 
-export const showAllPaymentsOrFunds = async (req, res) => {
+export const showAllPayments = async (req, res) => {
   try {
-    const payments = await Payment.find({});
+    const userId = req.params.userId;
+
+    if (!userId) {
+      return req.status(401).json({
+        success: false,
+        message: "User ID is required!",
+      });
+    }
+
+    const payments = await Payment.find({ user_id: userId });
 
     if (!payments) {
       return res.status(404).json({
@@ -402,27 +410,53 @@ export const showAllPaymentsOrFunds = async (req, res) => {
       });
     }
 
-    const users = await Promise.all(
-      payments.map(async (payment) => {
-        const user = await User.findById(payment.user_id);
+    const user = await User.findById(userId);
 
-        if (!user) return null;
-
-        return {
-          id: user._id,
-          name: user.fullName,
-          email: user.email,
-          status: user.status,
-          phoneNumber: user.phoneNumber,
-        };
-      })
-    );
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: `User with ID: ${userId} not found`,
+      });
+    }
 
     return res.status(200).json({
       success: true,
       message: "Payments/Funds retrieved successfully!",
       payments,
-      users,
+      user,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: `Server Error: ${err.message}`,
+    });
+  }
+};
+
+export const showUserAndHisAllTransactions = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: "Send userId in the params!",
+      });
+    }
+
+    const userTransactions = await Transaction.find({ user_id: userId });
+
+    if (!userTransactions) {
+      return res.status(404).json({
+        success: false,
+        message: `Transactions not found with userId: ${userId}`,
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "User transaction found",
+      transactions: userTransactions,
     });
   } catch (err) {
     return res.status(500).json({

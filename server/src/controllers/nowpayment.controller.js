@@ -1,5 +1,5 @@
-import { Payment, Transaction, UserBalance } from '../models/payment.models.js';
-import axios from 'axios';
+import { Payment, Transaction, UserBalance } from "../models/payment.models.js";
+import axios from "axios";
 import crypto from "crypto";
 import User from "../models/User.model.js";
 
@@ -7,9 +7,7 @@ import User from "../models/User.model.js";
 const NOWPAYMENTS_API_KEY = process.env.NOWPAYMENTS_API_KEY;
 const NOWPAYMENTS_API_URL = "https://api-sandbox.nowpayments.io/v1";
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
-const BACKEND_URL =
-  process.env.BACKEND_URL ||
-  "https://univalent-distractedly-dave.ngrok-free.dev";
+const BACKEND_URL = process.env.BACKEND_URL;
 
 // Axios instance
 const nowpaymentsRequest = axios.create({

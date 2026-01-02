@@ -3,14 +3,13 @@ import { Menu } from "lucide-react";
 import Dashboard from "../admin/Dashboard";
 import UserDashboard from "../user/Dashboard";
 import UserProfile from "../admin/UserProfile";
-import ManageFunds from "../admin/ManageFunds"; 
+import ManageFunds from "../admin/ManageFunds";
 import UserManageFunds from "../user/UserManageFunds";
 import UserDeposit from "../user/payment/UserDeposit";
-import UserWithdraw from "../user/payment/UserWithdraw"; 
+import UserWithdraw from "../user/payment/UserWithdraw";
 import VerificationRoute from "../../../routes/VerificationRoute";
 import Settings from "./Settings";
 import { specificData } from "../../../utils/user.utils";
-import VerifyIdentity from "../../../components/verificationPages/VerifyIdentity";
 
 export default function MainContent({
   sidebarOpen,
@@ -44,9 +43,6 @@ export default function MainContent({
 
   return (
     <>
-      {/* <VerifyIdentity user={userData}  
-      /> */}
-
       {/* Main Content */}
       <main
         className={`flex-1 flex flex-col transition-all duration-300 md:overflow-auto ${
@@ -66,8 +62,7 @@ export default function MainContent({
           <h1 className="text-xl font-bold capitalize">
             {menuItems.find((m) => m.id === activeMenu)?.label}
           </h1>
-          {
-            users.role === "user" && (
+          {users.role === "user" && (
             <p
               className={`px-2 py-1 rounded-full text-xs font-semibold ${
                 // in your table & modal
@@ -82,9 +77,7 @@ export default function MainContent({
             >
               {users.status}
             </p>
-            )
-          }
-          
+          )}
         </header>
 
         {/* Page Content */}
@@ -99,9 +92,6 @@ export default function MainContent({
           )}
           {role === "user" && (
             <>
-              {/* <VerificationRoute setActiveSubMenu={setActiveSubMenu}> */}
-
-              {/* {activeMenu === "dashboard" && <UserDashboard />} */}
               {activeMenu === "dashboard" &&
                 {
                   deposit: (
@@ -136,8 +126,6 @@ export default function MainContent({
                     <UserManageFunds setActiveSubMenu={setActiveSubMenu} user={users} />
                   ),
                 }[activeSubMenu]}
-
-              {/* </VerificationRoute> */}
             </>
           )}
         </section>
