@@ -11,35 +11,48 @@ export const withdrawalAPI = axios.create({
 
 // ================= CREATE WITHDRAWAL =================
 export const createWithdrawal = async ({ amount, method, details, userId }) => {
-  const response = await withdrawalAPI.post("/create", {
-    amount,
-    method,
-    details
-  }, {
-    headers: {
-      "user-id": userId,
+  const response = await withdrawalAPI.post(
+    "/create",
+    {
+      amount,
+      method,
+      details,
     },
-  });
+    {
+      headers: {
+        "user-id": userId,
+      },
+    }
+  );
   return response.data;
 };
 
 // ================= GET USER WITHDRAWALS =================
-export const getUserWithdrawals = async ({ userId, limit = 10, page = 0, status }) => {
+export const getUserWithdrawals = async ({
+  userId,
+  limit = 10,
+  page = 0,
+  status,
+}) => {
   const params = new URLSearchParams({
     limit: limit.toString(),
     page: page.toString(),
   });
-  
+
   if (status) {
-    params.append('status', status);
+    params.append("status", status);
   }
 
-  const response = await withdrawalAPI.get(`/my-withdrawals?${params}`, {
-    headers: {
-      "user-id": userId,
-    },
+  const response = await withdrawalAPI.get(`/my-withdrawals/${userId}`, {
+    method: "GET",
+    // body: {
+    //   userId: userId,
+    // },
   });
-  return response.data;
+
+  const result = await response.data;
+
+  return result.data;
 };
 
 // ================= GET WITHDRAWAL BY ID =================
@@ -54,11 +67,15 @@ export const getWithdrawalById = async ({ withdrawalId, userId }) => {
 
 // ================= CANCEL WITHDRAWAL =================
 export const cancelWithdrawal = async ({ withdrawalId, userId }) => {
-  const response = await withdrawalAPI.post(`/${withdrawalId}/cancel`, {}, {
-    headers: {
-      "user-id": userId,
-    },
-  });
+  const response = await withdrawalAPI.post(
+    `/${withdrawalId}/cancel`,
+    {},
+    {
+      headers: {
+        "user-id": userId,
+      },
+    }
+  );
   return response.data;
 };
 
@@ -76,7 +93,7 @@ export const getWithdrawalStats = async ({ userId }) => {
 
 // Calculate withdrawal fee
 export const calculateFee = (amount, method) => {
-  const feePercentage = method === 'crypto' ? 0.02 : 0.01; // 2% crypto, 1% bank
+  const feePercentage = method === "crypto" ? 0.02 : 0.01; // 2% crypto, 1% bank
   return amount * feePercentage;
 };
 
@@ -90,7 +107,7 @@ export const validateWalletAddress = (address, currency) => {
   if (!address || address.length < 26 || address.length > 62) {
     return false;
   }
-  
+
   // Currency-specific validation patterns
   const patterns = {
     btc: /^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/,
@@ -98,7 +115,7 @@ export const validateWalletAddress = (address, currency) => {
     ltc: /^[LM3][a-km-zA-HJ-NP-Z1-9]{26,33}$/,
     trx: /^T[a-zA-Z0-9]{33}$/,
   };
-  
+
   const pattern = patterns[currency?.toLowerCase()];
   return pattern ? pattern.test(address) : true; // If no pattern, allow it
 };
@@ -106,20 +123,20 @@ export const validateWalletAddress = (address, currency) => {
 // Format withdrawal status for display
 export const formatWithdrawalStatus = (status) => {
   const statusMap = {
-    pending: { text: 'Pending', color: 'yellow', icon: '⏳' },
-    processing: { text: 'Processing', color: 'blue', icon: '⚙️' },
-    completed: { text: 'Completed', color: 'green', icon: '✅' },
-    failed: { text: 'Failed', color: 'red', icon: '❌' },
-    cancelled: { text: 'Cancelled', color: 'gray', icon: '🚫' },
+    pending: { text: "Pending", color: "yellow", icon: "⏳" },
+    processing: { text: "Processing", color: "blue", icon: "⚙️" },
+    completed: { text: "Completed", color: "green", icon: "✅" },
+    failed: { text: "Failed", color: "red", icon: "❌" },
+    cancelled: { text: "Cancelled", color: "gray", icon: "🚫" },
   };
-  
-  return statusMap[status] || { text: status, color: 'gray', icon: '❓' };
+
+  return statusMap[status] || { text: status, color: "gray", icon: "❓" };
 };
 
 // Format currency for display
-export const formatCurrency = (amount, currency = 'USD') => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
+export const formatCurrency = (amount, currency = "USD") => {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
     currency: currency,
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
@@ -128,5 +145,5 @@ export const formatCurrency = (amount, currency = 'USD') => {
 
 // Get processing time estimate
 export const getProcessingTimeEstimate = (method) => {
-  return method === 'bank' ? '3-5 business days' : '24-48 hours';
+  return method === "bank" ? "3-5 business days" : "24-48 hours";
 };

@@ -1,9 +1,8 @@
 import {
   Withdrawal,
   UserBalance,
-  Transaction 
+  Transaction,
 } from "../models/payment.models.js";
-import crypto from "crypto";
 import User from "../models/User.model.js";
 
 // ================= CREATE WITHDRAWAL REQUEST =================
@@ -151,29 +150,61 @@ export const createWithdrawal = async (req, res) => {
 
 // ================= GET USER WITHDRAWALS =================
 export const getUserWithdrawals = async (req, res) => {
+  // try {
+  //   const { limit = 10, page = 0, status } = req.query;
+  //   const userId = req.params.userId;
+
+  //   const query = { user_id: userId };
+  //   if (status) query.status = status;
+
+  //   const withdrawals = await Withdrawal.find(query)
+  //     .sort({ created_at: -1 })
+  //     .limit(Number(limit))
+  //     .skip(Number(page) * Number(limit));
+
+  //   const total = await Withdrawal.countDocuments(query);
+
+  //   res.status(200).json({
+  //     withdrawals,
+  //     total,
+  //     page: Number(page),
+  //     limit: Number(limit),
+  //     totalPages: Math.ceil(total / limit),
+  //   });
+  // } catch (err) {
+  //   res.status(500).json({ error: err.message });
+  // }
+
   try {
-    const { limit = 10, page = 0, status } = req.query;
-    const userId = req.userId;
+    const userId = req.params.userId;
 
-    const query = { user_id: userId };
-    if (status) query.status = status;
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "User id is required!",
+      });
+    }
 
-    const withdrawals = await Withdrawal.find(query)
-      .sort({ created_at: -1 })
-      .limit(Number(limit))
-      .skip(Number(page) * Number(limit));
+    const withdrawals = await Withdrawal.find({ user_id: userId });
 
-    const total = await Withdrawal.countDocuments(query);
+    if (!withdrawals) {
+      return res.status(404).message({
+        success: false,
+        message: `No withdrawals found with user ID: ${userId}`,
+      });
+    }
 
-    res.json({
-      withdrawals,
-      total,
-      page: Number(page),
-      limit: Number(limit),
-      totalPages: Math.ceil(total / limit),
+    return res.status(200).json({
+      success: true,
+      message: "Withdrawals found successfully!",
+      data: withdrawals,
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Sevrer Error: ", err);
+    return res.status(500).json({
+      success: false,
+      message: `Server Error: ${err}`,
+    });
   }
 };
 
